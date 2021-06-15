@@ -1,8 +1,8 @@
 package auth
 
 import (
-	"../handlers"
 	"encoding/json"
+	"golang.com/forum/handlers"
 	"net/http"
 )
 

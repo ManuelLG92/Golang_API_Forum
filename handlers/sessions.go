@@ -1,10 +1,10 @@
 package handlers
 
 import (
-	"../config"
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
+	"golang.com/forum/config"
 	"net/http"
 	"sync"
 	"time"
@@ -32,7 +32,7 @@ func SetSession(w http.ResponseWriter, r *http.Request, email string)  {
 	syncSession.Lock()
 	defer syncSession.Unlock()
 	if getValueCookie(r) == "" {
-		uuidCookie, _ := uuid.NewV4()
+		uuidCookie := uuid.NewV4()
 		cookie := &http.Cookie{
 			Name:    cookieName,
 			Value:   uuidCookie.String(),
@@ -54,9 +54,7 @@ func SetSession(w http.ResponseWriter, r *http.Request, email string)  {
 		if lookSessionErr := getSessionData( getValueCookie(r)); lookSessionErr != nil {
 			fmt.Println(lookSessionErr)
 			return
-		} /*else {
-			fmt.Println("Cookie existente en la bbdd")
-		}*/
+		}
 	}
 
 }

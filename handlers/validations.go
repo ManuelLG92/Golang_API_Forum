@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	"../config"
-	"../models"
 	"fmt"
+	"golang.com/forum/config"
+	"golang.com/forum/models"
 	"golang.org/x/crypto/bcrypt"
 	"regexp"
 )
@@ -21,7 +21,7 @@ func login (email, password string) (bool, *string) {
 		return false, &user.Email
 	}
 	
-	return err == nil, &user.Email
+	return true, &user.Email
 
 }
 // End Login

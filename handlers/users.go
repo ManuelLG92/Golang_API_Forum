@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	"../models"
 	"encoding/json"
 	"fmt"
+	"golang.com/forum/models"
 	"net/http"
 	"strings"
 )
@@ -38,7 +38,10 @@ func newUser (name, lastName, password, email string) *User {
 
 // Init
 func Index(w http.ResponseWriter, _ *http.Request)  {
-	fmt.Fprintf(w, "You are in golang app!")
+	_, err := fmt.Fprintf(w, "You are in golang app!")
+	if err != nil {
+		return
+	}
 }
 // End
 
@@ -64,7 +67,10 @@ func SingUp (w http.ResponseWriter, r *http.Request)  {
 				models.SendNoContent(w)
 			} else {
 				fmt.Println("usuario creado")
-				json.NewEncoder(w).Encode(userCreated)
+				err := json.NewEncoder(w).Encode(userCreated)
+				if err != nil {
+					return
+				}
 
 			}
 		}
@@ -83,7 +89,10 @@ func CreateUser(name, lastName, password, email string) (*User, error) {
 	if err != nil {
 		return nil, err //Return error
 	} else {
-		user.SetPassword(password) //Hash password
+		err := user.SetPassword(password)
+		if err != nil {
+			return nil, err
+		} //Hash password
 		errInsertUSer := user.insertUser() //Insert user in BBDD
 		if errInsertUSer != nil {
 			fmt.Println("Ha ocurrido: ",errInsertUSer)

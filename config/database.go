@@ -4,16 +4,17 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	_"github.com/jinzhu/gorm"
 	"log"
-
 )
 var db *sql.DB
 
-const username string = "root"
-const password string = "manuel92"
+
+const username string = "manuel"
+const password string = "manuel"
 const host string = "localhost"
-const port int = 3307
-const dbName string = "go_react"
+const port int = 3306
+const dbName string = "golang"
 
 const userSchema string =
 
@@ -58,11 +59,13 @@ const sessionSchema string =
 //-- Init Database Connection
 func CreateConnection (){
 	//dbData := "root:manuel92@tcp(127.0.0.1:3307)/go"
+
 	connection, err := sql.Open("mysql",generateUrl())
 	if err != nil {
 		//log.Fatal(err)
 		panic(err)
 	} else {
+
 		db = connection
 		fmt.Println("Connection successfully to database.")
 	}

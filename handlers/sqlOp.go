@@ -1,10 +1,10 @@
 package handlers
 
 import (
-	"../config"
-	"../models"
 	"fmt"
 	"github.com/pkg/errors"
+	"golang.com/forum/config"
+	"golang.com/forum/models"
 )
 
 type SessionsData struct {
@@ -12,7 +12,7 @@ type SessionsData struct {
 	UserId int `json:"user_id"`
 }
 
-// Init GetUserByEmail
+// GetUserByEmail Init GetUserByEmail
 func GetUserByEmail(email string) *User {
 	user := newUser("","","","")
 	// si lo encuentra por el email lo devuelve

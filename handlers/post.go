@@ -1,12 +1,12 @@
 package handlers
 
 import (
-	"../config"
-	"../models"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
+	"golang.com/forum/config"
+	"golang.com/forum/models"
 	"net/http"
 	"strconv"
 	"time"
@@ -54,7 +54,7 @@ type PostWithUserData struct {
 
 type Posts []PostWithUserData
 
-// Init CreatePost public function
+// CreatePost Init CreatePost public function
 func CreatePost (w http.ResponseWriter, r *http.Request)  {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
@@ -113,7 +113,8 @@ func newPost (userId int, title, content string) (*Post, error) {
 	return post, nil
 
 }
-// Init validPost Public function
+
+// ValidPost Init validPost Public function
 func (post *Post) ValidPost () error  {
 	if validUserId(post.UserId) != nil && validPostData(post.Title, post.Content) != nil {
 		return models.ErrorInvalidPost
@@ -130,7 +131,6 @@ func (post *Post) ValidPost () error  {
 }
 */
 
-// Init  Update Post
 func UpdatePost (w http.ResponseWriter, r *http.Request)  {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
