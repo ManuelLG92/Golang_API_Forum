@@ -64,7 +64,7 @@ func SingUp (w http.ResponseWriter, r *http.Request)  {
 			// return a bad request and a helpful error message
 			// if you wished, you could concat the validation error into this
 			// message to help point your consumer in the right direction.
-			http.Error(w, "failed to validate struct", 400)
+			http.Error(w, err.Error(), 422)
 			//models.SendCustom(w, "body invalido", 422)
 			return
 		}
