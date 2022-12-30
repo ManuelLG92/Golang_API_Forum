@@ -3,9 +3,8 @@ package config
 import (
 	"database/sql"
 	"fmt"
-	_ "github.com/go-sql-driver/mysql"
-	_"github.com/jinzhu/gorm"
 	"log"
+	_ "github.com/mattn/go-sqlite3"
 )
 var db *sql.DB
 
@@ -18,8 +17,8 @@ const dbName string = "golang"
 
 const userSchema string =
 
-	`CREATE TABLE users (
-	id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+	`CREATE TABLE IF NOT EXISTS users (
+	id INT AUTO_INCREMENT PRIMARY KEY,
 	name VARCHAR(30) NOT NULL,
 	last_name VARCHAR(30),
 	password VARCHAR(64) NOT NULL,
@@ -31,9 +30,9 @@ const userSchema string =
 // Init Posts Table schema
 const postSchema string =
 
-	`CREATE TABLE posts (
-	id INT(6) UNSIGNED AUTO_INCREMENT NOT NULL PRIMARY KEY,
-	user_id INT(6) UNSIGNED NOT NULL,
+	`CREATE TABLE IF NOT EXISTS posts (
+	id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
+	user_id INT NOT NULL,
 	title VARCHAR(50) NOT NULL,
 	content VARCHAR(255) NOT NULL,
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -47,7 +46,7 @@ const postSchema string =
 // Init Sessions Table schema
 const sessionSchema string =
 
-	`CREATE TABLE sessions (
+	`CREATE TABLE IF NOT EXISTS sessions (
 	uuid VARCHAR(100) NOT NULL PRIMARY KEY,
 	email VARCHAR(40) NOT NULL,
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -60,7 +59,7 @@ const sessionSchema string =
 func CreateConnection (){
 	//dbData := "root:manuel92@tcp(127.0.0.1:3307)/go"
 
-	connection, err := sql.Open("mysql",generateUrl())
+	connection, err := sql.Open("sqlite3", "forum.db")
 	if err != nil {
 		//log.Fatal(err)
 		panic(err)
@@ -111,7 +110,7 @@ func createTable(tablename, schema string) {
 	if !existsTable(tablename) {
 		_, err := Execute(schema)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Printf("Error on create table. %s",err)
 
 		}
 	}
@@ -120,7 +119,7 @@ func createTable(tablename, schema string) {
 
 //-- Init  Check if exists DB table name
 func existsTable(tableName string) bool {
-	sqlSentence := fmt.Sprintf("SHOW TABLES LIKE '%s'", tableName)
+	sqlSentence := fmt.Sprintf("SELECT name FROM sqlite_master WHERE type='table' AND name='%s';", tableName)
 	rows, _ := Query(sqlSentence)
 	return rows.Next()
 }
@@ -129,25 +128,27 @@ func existsTable(tableName string) bool {
 func Execute(query string, args ...interface{}) (sql.Result, error) { //db.Exec back a result set and an error
 	result , err := db.Exec(query, args...)
 	if err != nil{
-		log.Println(err)
+		log.Printf("Error executing <Execute>. %s",err)
+
 	}
 	return result, err
 }
 
 func Query (query string, args ...interface{}) (*sql.Rows, error)  {
 	rows, err := db.Query(query, args...)
+	log.Println(db.Ping())
 	if err != nil{
-		log.Println(err)
+		log.Printf("Error executing <Query>. %s",err)
 		//return nil, err
 	}
 	//defer rows.Close()
 	return rows, err
 }
 
-/*
-func CreatePostTable()  {
+
+/* func CreatePostTable()  {
 	createTable(postTableName, postSchema)
-}*/
+} */
 
 //End Posts Table
 

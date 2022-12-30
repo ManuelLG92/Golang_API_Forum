@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/gorilla/mux"
 	"golang.com/forum/config"
-	//"golang.com/forum/handlers"
+	"golang.com/forum/handlers"
 	"log"
 	"net/http"
 )
@@ -12,11 +12,11 @@ import (
 func main() {
 	muxRouter := mux.NewRouter().StrictSlash(true)
 	port := ":2000"
-	/*config.CreateConnection()
+	config.CreateConnection()
 	config.CreateTables()
-	config.CreatePostTable()
+	//config.CreatePostTable()
 	config.Ping()
-	defer config.CloseConnection()*/
+	defer config.CloseConnection()
 	config.Connection()
 	config.CreateGormDatabase()
 	defer config.CloseGormConnection()
@@ -25,12 +25,12 @@ func main() {
 	//auth.InitToken()
 
 
-	/*muxRouter.HandleFunc("/",handlers.Index).Methods("GET")
+	muxRouter.HandleFunc("/",handlers.Index).Methods("GET")
 	muxRouter.HandleFunc("/users/sign-up/",handlers.SingUp).Methods("POST", "OPTIONS")
 	muxRouter.HandleFunc("/users/sign-in/",handlers.SingIn).Methods("POST", "OPTIONS")
 	muxRouter.HandleFunc("/users/log-out/",handlers.LogOut).Methods("GET")
-	muxRouter.HandleFunc("/auth/",auth.IsUserAuth).Methods("GET")
-*/
+	//muxRouter.HandleFunc("/auth/",auth.IsUserAuth).Methods("GET")
+
 
 	//muxRouter.HandleFunc("/users/",handlers.GetUsers).Methods("GET")
 	//muxRouter.HandleFunc("/users/{id:[0-9]+}",handlers.GetUserOnEmail).Methods("GET")

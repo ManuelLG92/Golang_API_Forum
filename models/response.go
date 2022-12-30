@@ -19,6 +19,8 @@ func CreateDefaultResponse (w http.ResponseWriter) Response {
 }
 
 func (response *Response) Send()  {
+	response.writer.Header().Set("Access-Control-Allow-Origin", "*")
+	response.writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 	response.writer.Header().Set("Content-Type", "application/json")
 
 	//sesionCookie := SetCookie(response.writer)
@@ -27,8 +29,17 @@ func (response *Response) Send()  {
 	//Response{ Cookie: SetCookie(response.writer)}
 	//response.writer.WriteHeader(response.Status)
 	//output, _ :=json.Marshal(&response)
+	response.writer.WriteHeader(response.Status)
 	_= json.NewEncoder(response.writer).Encode(response)//serialziamos el objeto response
+	
 	//fmt.Fprintf(response.writer, string(output)) //se pinta por la stdout standard
+}
+
+func SendCustom(w http.ResponseWriter, message string, status int)  {
+	response := CreateDefaultResponse(w)
+	response.Status = status
+	response.Message = message
+	response.Send()
 }
 
 func SendNotFound(w http.ResponseWriter)  {

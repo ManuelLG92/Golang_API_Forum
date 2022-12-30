@@ -3,16 +3,15 @@ package config
 import (
 	"database/sql"
 	"golang.com/forum/user/domain"
-	"gorm.io/driver/mysql"
-	_ "gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	_ "gorm.io/gorm"
+	"gorm.io/driver/sqlite"
 	"log"
 )
 var DbGorm *gorm.DB
 func Connection()  *gorm.DB{
-	dsn := "manuel:manuel@tcp(127.0.0.1:3306)/golang_gorm?charset=utf8mb4&parseTime=True&loc=Local"
-	dbFunction, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	//dsn := "manuel:manuel@tcp(127.0.0.1:3306)/golang_gorm?charset=utf8mb4&parseTime=True&loc=Local"
+	//dbFunction, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	dbFunction, err := gorm.Open(sqlite.Open("gorm.db"), &gorm.Config{})
 	if err != nil {
 		panic(err.Error())
 	}

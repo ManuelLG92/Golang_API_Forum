@@ -6,15 +6,17 @@ import (
 	"golang.com/forum/models"
 	"net/http"
 	"strings"
+	validator "github.com/go-playground/validator/v10"
+	"log"
 )
 
 
 type User struct {
-	Id int8 `json:"id"`
-	Name string `json:"name"`
-	LastName string `json:"last_name"`
-	Email string `json:"email"`
-	Password string `json:"password"`
+	Id int8 `json:"id" `
+	Name string `json:"name" validate:"required"`
+	LastName string `json:"last_name" validate:"required"`
+	Email string `json:"email" validate:"required"`
+	Password string `json:"password" validate:"required"`
 }
 /*
 {
@@ -47,16 +49,29 @@ func Index(w http.ResponseWriter, _ *http.Request)  {
 
 // Init DONE
 func SingUp (w http.ResponseWriter, r *http.Request)  {
-	w.Header().Set("Content-type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	// w.Header().Set("Content-type", "application/json")
+	// w.Header().Set("Access-Control-Allow-Origin", "*")
+	// w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 		user := User{}
-		decoder := json.NewDecoder(r.Body)
+		//decoder := json.NewDecoder(r.Body)
 		fmt.Println(r.Body)
-		err := decoder.Decode(&user)
+		//err := decoder.Decode(&user)
+		validate := validator.New()
+		err := validate.Struct(user)
+		if err != nil {
+			// log out this error
+			log.Printf("Error validaing user %v",err)
+			// return a bad request and a helpful error message
+			// if you wished, you could concat the validation error into this
+			// message to help point your consumer in the right direction.
+			http.Error(w, "failed to validate struct", 400)
+			//models.SendCustom(w, "body invalido", 422)
+			return
+		}
 		//fmt.Println(err)
 		if err != nil {
 			fmt.Println("no se reconoce lo enviado por el usuario")
+			models.SendCustom(w, "body invalido", 422)
 		} else {
 			fmt.Println("REconocido JSON enviado por el cliente")
 			fmt.Println(user)
