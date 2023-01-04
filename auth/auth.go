@@ -49,11 +49,10 @@ func GenerateJwt(data JwtCustomClaims) (error, *string) {
 	return nil, &signedStringToken
 }
 
-func IsTokenValid(w http.ResponseWriter, r *http.Request) (error, interface{})  {
+func IsTokenValid(w http.ResponseWriter, r *http.Request) (error, *string)  {
 	claims := &Claims{}
 	invalidToken := models.InvalidToken
 	var token = r.Header.Get("x-access-token")
-	fmt.Printf("Token %v", token)
 	if token == "" || len(token) < 40 {
 		fmt.Println("invalidToken length or not present")
 		fmt.Println(invalidToken.Error())
@@ -71,5 +70,7 @@ func IsTokenValid(w http.ResponseWriter, r *http.Request) (error, interface{})  
 	   fmt.Println(invalidToken.Error())
 		return invalidToken, nil
 	}
-	return nil, claims.Id
+
+	fmt.Printf("Claim id. %v", claims.Id)
+	return nil, &claims.Id
 }

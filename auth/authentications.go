@@ -1,7 +1,9 @@
 package auth
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
@@ -9,13 +11,21 @@ type CustomHandler func(w http.ResponseWriter, r *http.Request)
 
 func AuthenticatedUser(function CustomHandler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		err, _ := IsTokenValid(w, r)
+		err, val := IsTokenValid(w, r)
+		fmt.Println("after token")
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			_ = json.NewEncoder(w).Encode(err.Error())
 			return
 		}
-		function(w, r)
+		fmt.Println("before get r context")
+
+		ctx := r.Context()
+		ctx = context.WithValue(ctx, "user-id", val)
+		fmt.Println("after ser value to context")
+		fmt.Println("after se with value to context")
+		fmt.Println(ctx.Value("user-id"))
+		function(w, r.WithContext(ctx))
 	})
 }
 

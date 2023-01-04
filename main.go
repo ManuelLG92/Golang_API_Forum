@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 	"net/http"
-
 	"github.com/gorilla/mux"
 	"golang.com/forum/auth"
 	"golang.com/forum/config"
@@ -21,8 +20,6 @@ func main() {
 	config.Connection()
 	handlers.AutoMigrate()
 	defer config.CloseGormConnection()
-
-	//mux := http.NewServeMux()
 
 	/*authHandler := auth.AuthenticatedUser(handlers.GetPostsByUser)
 	muxRouter.Handle("/users/posts/{id:[0-9]+}",authHandler).Methods("GET")*/
@@ -55,10 +52,6 @@ func main() {
 	authHandlerEdit := auth.AuthenticatedUser(handlers.UpdatePost)
 	muxRouter.Handle("/users/posts/{id:[0-9]+}",authHandlerEdit).Methods("PUT","OPTIONS")*/
 	//muxRouter.HandleFunc("/post/edit/{id:[0-9]+}/",handlers.UpdatePost).Methods("PUT","OPTIONS")
-	// End auth user for edit
-
-	//muxRouter.HandleFunc("/post/delete/{id:[0-9]+}/",handlers.DeletePost).Methods("POST","OPTIONS")
-
 	//Init Auth users test
 	/*authHandler := auth.AuthenticatedUser(handlers.GetPostsByUser)
 	muxRouter.Handle("/users/posts/{id:[0-9]+}",authHandler).Methods("GET")*/

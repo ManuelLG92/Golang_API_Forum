@@ -49,6 +49,9 @@ func newUser(name, lastName, password, email string) *User {
 
 // Init
 func Index(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("before ctx.")
+	userCtx := r.Context().Value("user-id").(*string)
+	fmt.Printf("user ctx. %v", *userCtx)
 	_, err := fmt.Fprintf(w, "You are in golang app!")
 	if err != nil {
 		return
