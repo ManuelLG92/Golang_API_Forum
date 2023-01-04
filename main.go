@@ -1,11 +1,13 @@
 package main
 
 import (
-	"github.com/gorilla/mux"
-	"golang.com/forum/config"
-	"golang.com/forum/handlers"
 	"log"
 	"net/http"
+
+	"github.com/gorilla/mux"
+	"golang.com/forum/auth"
+	"golang.com/forum/config"
+	"golang.com/forum/handlers"
 )
 
 
@@ -14,21 +16,25 @@ func main() {
 	port := ":2000"
 	config.CreateConnection()
 	config.CreateTables()
-	//config.CreatePostTable()
 	config.Ping()
 	defer config.CloseConnection()
 	config.Connection()
-	config.CreateGormDatabase()
+	handlers.AutoMigrate()
 	defer config.CloseGormConnection()
-/*	user := userDomain.User{Name: "Jinzhu", Surname: "Junzhu Surname", Email: "junzhu@jinzhu.es"}
-	userManager.CreateUser(user)*/
-	//auth.InitToken()
 
+	//mux := http.NewServeMux()
 
-	muxRouter.HandleFunc("/",handlers.Index).Methods("GET")
+	/*authHandler := auth.AuthenticatedUser(handlers.GetPostsByUser)
+	muxRouter.Handle("/users/posts/{id:[0-9]+}",authHandler).Methods("GET")*/
+	authHandler := auth.AuthenticatedUser(handlers.Index)
+	//next := http.HandlerFunc(handlers.Index)
+	muxRouter.Handle("/", authHandler).Methods("GET")
 	muxRouter.HandleFunc("/users/sign-up/",handlers.SingUp).Methods("POST", "OPTIONS")
 	muxRouter.HandleFunc("/users/sign-in/",handlers.SingIn).Methods("POST", "OPTIONS")
-	muxRouter.HandleFunc("/users/log-out/",handlers.LogOut).Methods("GET")
+	muxRouter.HandleFunc("/login/",handlers.SingIn).Methods("POST", "OPTIONS")
+
+	log.Println("El servidor esta a la escucha en el puerto ", port)
+	log.Fatal(http.ListenAndServe(port, muxRouter))
 	//muxRouter.HandleFunc("/auth/",auth.IsUserAuth).Methods("GET")
 
 
@@ -93,7 +99,32 @@ func main() {
 	tc,_ := context.WithTimeout(context.Background(),30*time.Second)
 	server.Shutdown(tc)*/
 	// All new from Nic
-	log.Println("El servidor esta a la escucha en el puerto ", port)
-	log.Fatal(http.ListenAndServe(port, muxRouter))
+/* 	server := &http.Server{
+		Addr: port,
+		Handler: muxRouter,
+		IdleTimeout: 120*time.Second,
+		ReadTimeout: 1*time.Second,
+		WriteTimeout: 1*time.Second,
+
+	}
+	go func() {
+		err := server.ListenAndServe()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	signalChanel := make(chan os.Signal)
+	signal.Notify(signalChanel,os.Interrupt)
+	signal.Notify(signalChanel, os.Kill)
+
+	signal := <- signalChanel
+	log.Println("received terminated, graceful shutdown", signal)
+
+	tc,_ := context.WithTimeout(context.Background(),30*time.Second)
+	server.Shutdown(tc) */
+
+	
+
 }
 

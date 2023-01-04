@@ -6,14 +6,14 @@ import (
 	"log"
 	_ "github.com/mattn/go-sqlite3"
 )
-var db *sql.DB
+var DbSingleton *sql.DB
 
 
 const username string = "manuel"
 const password string = "manuel"
 const host string = "localhost"
 const port int = 3306
-const dbName string = "golang"
+const DbName string = "golang"
 
 const userSchema string =
 
@@ -22,7 +22,7 @@ const userSchema string =
 	name VARCHAR(30) NOT NULL,
 	last_name VARCHAR(30),
 	password VARCHAR(64) NOT NULL,
-	email VARCHAR(40) NOT NULL,
+	email VARCHAR(40) NOT NULL UNIQUE,
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP )`
 
 
@@ -57,15 +57,15 @@ const sessionSchema string =
 
 //-- Init Database Connection
 func CreateConnection (){
-	//dbData := "root:manuel92@tcp(127.0.0.1:3307)/go"
+	//DbData := "root:manuel92@tcp(127.0.0.1:3307)/go"
 
-	connection, err := sql.Open("sqlite3", "forum.db")
+	connection, err := sql.Open("sqlite3", "forum.Db")
 	if err != nil {
 		//log.Fatal(err)
 		panic(err)
 	} else {
 
-		db = connection
+		DbSingleton = connection
 		fmt.Println("Connection successfully to database.")
 	}
 }
@@ -73,7 +73,7 @@ func CreateConnection (){
 
 //-- Init Ping Database
 func Ping ()  {
-	if err := db.Ping();  err != nil{
+	if err := DbSingleton.Ping();  err != nil{
 		panic(err)
 	}
 }
@@ -81,14 +81,14 @@ func Ping ()  {
 
 //-- Init generateUIRL for Database Connection
 func generateUrl () string{
-	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", username, password, host, port,dbName)
+	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", username, password, host, port,DbName)
 }
 //-- End generateUIRL for Database Connection
 
 //-- Init Close Database Connection
 
 func CloseConnection()  {
-	err := db.Close()
+	err := DbSingleton.Close()
 	if err != nil {
 		fmt.Println("Problem closing the database")
 	}
@@ -96,16 +96,16 @@ func CloseConnection()  {
 }
 //-- End Close Database Connection
 
-//-- Init  Create DB tables
+//-- Init  Create Db tables
 func CreateTables ()  {
 	createTable("users", userSchema)
 	createTable("posts", postSchema)
 	createTable("sessions", sessionSchema)
 
 }
-//-- End  Create DB tables
+//-- End  Create Db tables
 
-//-- Init  Create DB table
+//-- Init  Create Db table
 func createTable(tablename, schema string) {
 	if !existsTable(tablename) {
 		_, err := Execute(schema)
@@ -115,18 +115,18 @@ func createTable(tablename, schema string) {
 		}
 	}
 }
-//-- End  Create DB table
+//-- End  Create Db table
 
-//-- Init  Check if exists DB table name
+//-- Init  Check if exists Db table name
 func existsTable(tableName string) bool {
 	sqlSentence := fmt.Sprintf("SELECT name FROM sqlite_master WHERE type='table' AND name='%s';", tableName)
 	rows, _ := Query(sqlSentence)
 	return rows.Next()
 }
-//-- End  Check if exists DB table name
+//-- End  Check if exists Db table name
 
-func Execute(query string, args ...interface{}) (sql.Result, error) { //db.Exec back a result set and an error
-	result , err := db.Exec(query, args...)
+func Execute(query string, args ...interface{}) (sql.Result, error) { //Db.Exec back a result set and an error
+	result , err := DbSingleton.Exec(query, args...)
 	if err != nil{
 		log.Printf("Error executing <Execute>. %s",err)
 
@@ -135,15 +135,16 @@ func Execute(query string, args ...interface{}) (sql.Result, error) { //db.Exec 
 }
 
 func Query (query string, args ...interface{}) (*sql.Rows, error)  {
-	rows, err := db.Query(query, args...)
-	log.Println(db.Ping())
+	rows, err := DbSingleton.Query(query, args...)
+	//log.Println(DbSingleton.Ping())
 	if err != nil{
 		log.Printf("Error executing <Query>. %s",err)
 		//return nil, err
 	}
-	//defer rows.Close()
+	defer rows.Close()
 	return rows, err
 }
+
 
 
 /* func CreatePostTable()  {

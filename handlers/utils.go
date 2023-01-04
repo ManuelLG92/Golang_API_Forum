@@ -1,20 +1,17 @@
 package handlers
 
 import (
-	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
-	"strconv"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // Init get id by URL
-func getIdByUrl(r *http.Request)  int {
+func getIdByUrl(r *http.Request)  string {
 	vars := mux.Vars(r)
-	paramId, errConv := strconv.Atoi(vars["id"])
-	if errConv != nil {
-		fmt.Println("The ID couldn't been catch")
-		return 0
-	}
-	return paramId
+	return vars["id"]
 }
-// End get id by URL
+
+func CheckPassword(current string, hash string) error  {
+	return bcrypt.CompareHashAndPassword([]byte(current),[]byte(hash))
+}

@@ -22,17 +22,8 @@ func (response *Response) Send()  {
 	response.writer.Header().Set("Access-Control-Allow-Origin", "*")
 	response.writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 	response.writer.Header().Set("Content-Type", "application/json")
-
-	//sesionCookie := SetCookie(response.writer)
-	//response.writer.Header().Set("Set-Cookie", "true")
-	//SetCookie(response.writer)
-	//Response{ Cookie: SetCookie(response.writer)}
-	//response.writer.WriteHeader(response.Status)
-	//output, _ :=json.Marshal(&response)
 	response.writer.WriteHeader(response.Status)
-	_= json.NewEncoder(response.writer).Encode(response)//serialziamos el objeto response
-	
-	//fmt.Fprintf(response.writer, string(output)) //se pinta por la stdout standard
+	_= json.NewEncoder(response.writer).Encode(response)
 }
 
 func SendCustom(w http.ResponseWriter, message string, status int)  {
@@ -60,6 +51,14 @@ func SendData( w http.ResponseWriter, data interface{})  {
 	response.Send()
 }
 
+func SendCreated( w http.ResponseWriter, data interface{})  {
+	response := CreateDefaultResponse(w)
+	response.Status = http.StatusCreated
+	response.Data = data
+	response.Message = "Created"
+	response.Send()
+}
+
 func SendNoContent (w http.ResponseWriter)   {
 	response := CreateDefaultResponse(w)
 	response.NoContent()
@@ -69,6 +68,13 @@ func (response *Response) NoContent()  {
 	response.Status = http.StatusNoContent
 	response.Message = "There is no content for this request"
 
+}
+
+func SendInternalServerError (w http.ResponseWriter)   {
+	response := CreateDefaultResponse(w)
+	response.Status = http.StatusInternalServerError
+	response.Message = "Internal server error"
+	response.Send()
 }
 
 func SendNotAuth (w http.ResponseWriter)   {

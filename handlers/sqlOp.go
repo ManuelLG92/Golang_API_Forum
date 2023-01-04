@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"golang.com/forum/config"
-	"golang.com/forum/models"
 )
 
 type SessionsData struct {
@@ -12,52 +11,52 @@ type SessionsData struct {
 	UserId int `json:"user_id"`
 }
 
-// GetUserByEmail Init GetUserByEmail
-func GetUserByEmail(email string) *User {
-	user := newUser("","","","")
-	// si lo encuentra por el email lo devuelve
-	sql := "SELECT id, name,last_name, password, email FROM users where email=?"
-	rows, err := config.Query(sql,email)
+func AutoMigrate()  {
+	err := config.Connection().AutoMigrate(&User{})
 	if err != nil {
-		return nil
-		//fmt.Println("inside if", err)
+		return 
 	}
-	for rows.Next() {
-		err := rows.Scan(&user.Id, &user.Name, &user.LastName,&user.Password, &user.Email)
-		if  err != nil {
-			return nil
-		}
-	}
-	return user
 }
-// End GetUserByEmail
 
-// Init insertUser in DB
+func GetUserByEmail(email string) (*User, error) {
+	var us = &User{Email: email}
+	userGorm := config.DbGorm.First(&us, "email = ?", email);
+	if userGorm.Error != nil{
+		return nil, userGorm.Error
+	}
+
+	if userGorm.RowsAffected > 0 {
+		fmt.Printf("user rows %v", us)
+		fmt.Printf("found rows %v", userGorm.RowsAffected)
+		return us, nil
+	}
+
+	fmt.Printf("not found rows %v", userGorm.RowsAffected)
+
+	return nil, errors.Errorf("not found rows.")
+}
+
 func (user *User) insertUser() error {
-	syncSession.Lock()
-	defer syncSession.Unlock()
-	sql := "INSERT users SET name=? , last_name=?, password=?, email=?"
-	Result, err := config.Execute(sql,user.Name,user.LastName , user.Password, user.Email)
-	if err != nil {
-		return err
+	result := config.DbGorm.Create(&user);
+
+	if result.Error != nil {
+		fmt.Printf("error saving user. %v", result.Error.Error())
 	}
-	fmt.Println(Result)
+	fmt.Printf("saved user %v.", user.Id)
 
 	return nil
 }
-// End insertUser in DB
 
-//Init Exist Email
-func existEmail(email string) error {
-	syncSession.Lock()
-	defer syncSession.Unlock()
-	sql := "SELECT name, email FROM users where email=?"
-	rows, _ := config.Query(sql,email)
-	for rows.Next() {
-		return models.ErrorUserRegistred
-		//rows.Scan(&user.Password, &user.Email)
+func existEmail(email string) (*bool,error) {
+	var us = &User{Email: email}
+	userGorm := config.DbGorm.First(&us);
+	if userGorm.Error != nil{
+		fmt.Println(userGorm.Error.Error())
+		return nil, userGorm.Error
 	}
-	return nil
+
+	exists := userGorm.RowsAffected > 0
+	return &exists, nil
 }
 // End Exist Email
 
@@ -78,7 +77,7 @@ func (post *Post) insertPost () error  {
 
 // Init insert post
 //(post *Post)
-func updatePostSql (postId , userId int, title, content string) error  {
+func updatePostSql (postId string, userId string, title, content string) error  {
 	syncSession.Lock()
 	defer syncSession.Unlock()
 	sql := "UPDATE posts SET title=?,content=? WHERE user_id=? and id=?"
@@ -92,25 +91,8 @@ func updatePostSql (postId , userId int, title, content string) error  {
 
 // End update post
 
-func getSessionByUuid (uuid string) (error, int)  {
-	//syncSession.Lock()
-	//defer syncSession.Unlock()
-	var userID int
-	sql := "SELECT user_id FROM sessions WHERE uuid=?"
-	result , err :=config.Query(sql,uuid)
-	if err != nil {
-		fmt.Println("Could not catch any row")
-		return err,0
-	} else {
-		for result.Next(){
-			result.Scan(&userID)
-		}
-		//fmt.Println("user id in query : ", userID)
-		return nil, userID
-	}
-}
 
-func deletePost (postId int)  error {
+func deletePost (postId string)  error {
 	/*syncSession.Lock()
 	defer syncSession.Unlock()*/
 	sql := "DELETE FROM posts WHERE id=?"

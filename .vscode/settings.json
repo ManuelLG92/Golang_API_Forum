@@ -4,7 +4,7 @@
         {
             "previewLimit": 50,
             "driver": "SQLite",
-            "database": "${workspaceFolder:Golang_API_Forum}/forum.db",
+            "database": "${workspaceFolder:Golang_API_Forum}/gorm-new.db",
             "name": "main"
         }
     ]

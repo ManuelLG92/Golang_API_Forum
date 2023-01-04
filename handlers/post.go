@@ -13,9 +13,8 @@ import (
 )
 
 type Post struct {
-	Id int `json:"id"`
-	UserId int `json:"user_id"`
-	Uuid string `json:"uuid"`
+	Id string `json:"id"`
+	UserId string `json:"user_id"`
 	//UserName string `json:"user_name"`
 	//LastName string `json:"last_name"`
 	//Country string `json:"country"`
@@ -26,12 +25,11 @@ type Post struct {
 }
 
 type PostForOptions struct {
-	Id int `json:"id"`
-	UserId int `json:"user_id"`
+	Id string `json:"id"`
+	UserId string `json:"user_id"`
 	//UserName string `json:"user_name"`
 	//LastName string `json:"last_name"`
 	//Country string `json:"country"`
-	Uuid string `json:"uuid"`
 	Title string `json:"title"`
 	Content string `json:"content"`
 	CreatedAt string `json:"created_at"`
@@ -62,15 +60,14 @@ func CreatePost (w http.ResponseWriter, r *http.Request)  {
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 
 	post := Post{}
-	decoder := json.NewDecoder(r.Body)
+    decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&post)
-	errorSession, userId := getSessionByUuid(post.Uuid)
-	if errorSession != nil {
-		fmt.Println("WE couldnt catch any session by uuid: ", err)
-		http.Error(w,"You should be authenticated to create posts. ", http.StatusForbidden)
-		return
+	if err != nil {
+		fmt.Println("Error trying fit the body to struct: %v", err.Error())
+		http.Error(w, "Error trying fit the body to struct.", http.StatusNoContent)
+		return 
 	}
-	if userId != 0 {
+
 		createdPost, err := createPost(post.UserId, post.Title, post.Content)
 		if err != nil {
 			fmt.Println("Error trying to create a user: ", err)
@@ -80,14 +77,14 @@ func CreatePost (w http.ResponseWriter, r *http.Request)  {
 			_ : json.NewEncoder(w).Encode(createdPost)
 			models.SendData(w,createdPost)
 		}
-	}
+
 
 
 }
 // End CreatePost public function
 
 // Init createPost private function
-func createPost (userId int, title, content string)  (*Post, error ){
+func createPost (userId string, title, content string)  (*Post, error ){
 	post, errorValidPost := newPost(userId, title, content)
 	if errorValidPost != nil {
 		return nil, errorValidPost
@@ -103,7 +100,7 @@ func createPost (userId int, title, content string)  (*Post, error ){
 }
 // End createPost private function
 
-func newPost (userId int, title, content string) (*Post, error) {
+func newPost (userId string, title string, content string) (*Post, error) {
 
 	post := &Post{UserId: userId, Title: title, Content: content}
 	errNewPost := post.ValidPost()
@@ -137,7 +134,7 @@ func UpdatePost (w http.ResponseWriter, r *http.Request)  {
 	w.Header().Set("Access-Control-Allow-Methods", "PUT")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 	postId := getIdByUrl(r)
-	if postId == 0 {
+	if postId == "" {
 		http.Error(w,"No valid post Id", http.StatusNotAcceptable)
 		return
 	}
@@ -145,10 +142,7 @@ func UpdatePost (w http.ResponseWriter, r *http.Request)  {
 	decoder := json.NewDecoder(r.Body)
 	_ = decoder.Decode(&post)
 	//fmt.Println("UUid de la cookie: ", post.Uuid )
-	err, userId := getSessionByUuid(post.Uuid)
-	if err != nil {
-		fmt.Println("WE couldnt catch any session by uuid: ", err)
-	}
+	var userId string = "uuid"
 	//fmt.Println("USer id by post: ", post.UserId)
 	//fmt.Println("USer id by sql : ", userId)
 	sameUser := validateUserOptions(userId,post.UserId)
@@ -178,7 +172,7 @@ func DeletePost(w http.ResponseWriter, r *http.Request)  {
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 	postId := getIdByUrl(r)
 	//fmt.Println("post de param: ", postId)
-	if postId == 0 {
+	if postId == "" {
 		http.Error(w,"No valid post Id for Delete", http.StatusNotAcceptable)
 		return
 	}
@@ -189,11 +183,7 @@ func DeletePost(w http.ResponseWriter, r *http.Request)  {
 	//fmt.Println("Boidy request: : ", r.Body )
 	//fmt.Println("UUid de la cookie: ", post.Uuid )
 	//fmt.Println("UUid de la cookie: ", post)
-
-	err, userId := getSessionByUuid(post.Uuid)
-	if err != nil {
-		fmt.Println("WE couldnt catch any session by uuid: ", err)
-	}
+	userId := "uuid"
 	//fmt.Println("user id 1 : ", userId )
 	//fmt.Println("posrt id: ", post.UserId)
 	sameUser := validateUserOptions(userId,post.UserId)
@@ -211,22 +201,13 @@ func DeletePost(w http.ResponseWriter, r *http.Request)  {
 
 }
 
-func validateUserOptions (userId, postUserId int) bool  {
-	if  userId == postUserId  {
-		return true
-	} else {
-		return false
-	}
-}
+func validateUserOptions (userId string, postUserId string) bool  {
+	return  userId == postUserId  }
 //End DeletePost
 
 
 // Init editPost private function
-func editPost (postId , userId int, title, content string) error {
-	/*post, errorValidPost := newPost(userId, title, content)
-	if errorValidPost != nil {
-		return nil, errorValidPost
-	} else {}*/
+func editPost (postId string, userId string, title, content string) error {
 		EditedPost := updatePostSql(postId, userId, title, content)
 		if EditedPost != nil {
 			return EditedPost

@@ -1,6 +1,9 @@
 package models
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 type ValidationError error
 
@@ -11,7 +14,7 @@ var (
 
 	ErrorLastname = ValidationError(errors.New("lastname error"))
 
-	ErrorPassword = ValidationError(errors.New("pAssword error"))
+	ErrorPassword = ValidationError(errors.New("password error"))
 
 	ErrorEmail = ValidationError(errors.New("email format invalid"))
 
@@ -24,11 +27,26 @@ var (
 
 	ErrorUserRegistred = ValidationError(errors.New("this email has been registred already"))
 
+	NotFoun = ValidationError(errors.New("this user couldn't be found"))
 	ErrorPostByUserId = ValidationError(errors.New("this user couldn't be found"))
 	ErrorPostData = ValidationError(errors.New("post data not valid, check out."))
 	//ErrorPostContent = ValidationError(errors.New("post content not valid"))
 	ErrorInvalidPost = ValidationError(errors.New("post  not valid"))
+	InterServerError = ValidationError(errors.New("unexpected error"))
+
+
+	InvalidToken = ValidationError(errors.New("Invalid token"))
+
 
 	//ErrorSessionAlreadyRegistred= ValidationError(errors.New("post  not valid"))
 )
+
+func UnableToParseDataToStruct(args string) error  {
+	return ValidationError(errors.New(fmt.Sprintf("Unable to parse data. Details: %v", args)))
+}
+
+func NotFound(context string) error  {
+	return ValidationError(errors.New(fmt.Sprintf("Not found: %v", context)))
+
+}
 
