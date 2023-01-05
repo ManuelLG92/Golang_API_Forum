@@ -11,6 +11,7 @@ import (
 	"golang.com/forum/auth"
 	"golang.com/forum/helpers"
 	"golang.com/forum/models"
+	"golang.com/forum/routes"
 )
 
 type User struct {
@@ -19,6 +20,24 @@ type User struct {
 	LastName string `json:"last_name" validate:"required"`
 	Email    string `json:"email" validate:"required"`
 	Password string `json:"password" validate:"required"`
+}
+
+// UserRoutes := []routes.Routes{}
+var signUp routes.Routes = routes.Routes{Path: "/sign-up/", Name: "register", Methods: []string{"POST", "OPTIONS"}, Handler: SingUp, NeedsAuth: false}
+var signIn routes.Routes = routes.Routes{Path: "/login/", Name: "login", Methods: []string{"POST", "OPTIONS"}, Handler: SingIn, NeedsAuth: false}
+
+func GetRoutes() *[]routes.Routes {
+	var signUp routes.Routes = routes.Routes{Path: "/sign-up/", Name: "register", Methods: []string{"POST", "OPTIONS"}, Handler: SingUp, NeedsAuth: false}
+	var signIn routes.Routes = routes.Routes{Path: "/login/", Name: "login", Methods: []string{"POST", "OPTIONS"}, Handler: SingIn, NeedsAuth: false}
+	var index routes.Routes = routes.Routes{Path: "/", Name: "login", Methods: []string{"GET"}, Handler: Index, NeedsAuth: true}
+
+	var UserRoutes []routes.Routes = []routes.Routes{}
+	UserRoutes = append(UserRoutes, signUp)
+	UserRoutes = append(UserRoutes, signIn)
+	UserRoutes = append(UserRoutes, index)
+
+	return &UserRoutes
+
 }
 
 /*
@@ -100,7 +119,6 @@ func SingUp(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-
 func CreateUser(name, lastName, password, email string) (*User, error) {
 	user := newUser(name, lastName, password, email)
 	err := user.Valid() //Data validation
@@ -131,7 +149,6 @@ func CreateUser(name, lastName, password, email string) (*User, error) {
 
 }
 
-
 func SingIn(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
@@ -158,16 +175,15 @@ func SingIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err, token := auth.GenerateJwt(auth.JwtCustomClaims{Id: user.Id,Name: user.Name, Email: user.Email,Password: user.Password,IP: r.RemoteAddr})
+	err, token := auth.GenerateJwt(auth.JwtCustomClaims{Id: user.Id, Name: user.Name, Email: user.Email, Password: user.Password, IP: r.RemoteAddr})
 	if err != nil {
-	fmt.Printf("Error creating token. %v", err.Error())
+		fmt.Printf("Error creating token. %v", err.Error())
 		models.SendInternalServerError(w)
 		return
 	}
 	fmt.Println("authenticated user")
 	w.Header().Set("x-access-token", *token)
 	w.WriteHeader(http.StatusOK)
-
 }
 
 func UpdateUsers(w http.ResponseWriter, _ *http.Request) {
@@ -206,7 +222,6 @@ func (user *User) Valid() error {
 	}
 	return nil
 }
-
 
 // Init
 func GetUsers(w http.ResponseWriter, _ *http.Request) {
