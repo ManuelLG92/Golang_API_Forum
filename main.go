@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-
 	"github.com/gorilla/mux"
 	"golang.com/forum/config"
-	"golang.com/forum/handlers"
 	"golang.com/forum/routes"
+	user_infra "golang.com/forum/user/infraestructure"
+
 )
 
 func main() {
@@ -19,10 +19,9 @@ func main() {
 	config.Ping()
 	defer config.CloseConnection()
 	config.Connection()
-	handlers.AutoMigrate()
 	defer config.CloseGormConnection()
 
-	userRoutes := handlers.GetRoutes()
+	userRoutes := user_infra.GetRoutes();
 	err := routes.Register(*userRoutes, muxRouter)
 	if err != nil {
 		fmt.Printf("Errors %v", err)

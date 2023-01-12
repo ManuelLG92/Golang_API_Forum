@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
+	"golang.com/forum/auth"
 	"golang.com/forum/config"
+	"golang.com/forum/helpers"
 	"golang.com/forum/models"
 	"net/http"
 	"strconv"
@@ -13,70 +15,37 @@ import (
 )
 
 type Post struct {
-	Id     string `json:"id"`
-	UserId string `json:"user_id"`
-	//UserName string `json:"user_name"`
-	//LastName string `json:"last_name"`
-	//Country string `json:"country"`
+	Id        string `json:"id"`
+	UserId    string `json:"user_id"`
 	Title     string `json:"title"`
 	Content   string `json:"content"`
 	CreatedAt string `json:"created_at"`
 	UpdatedAt string `json:"updated_at"`
 }
 
-type PostForOptions struct {
-	Id     string `json:"id"`
-	UserId string `json:"user_id"`
-	//UserName string `json:"user_name"`
-	//LastName string `json:"last_name"`
-	//Country string `json:"country"`
-	Title     string `json:"title"`
-	Content   string `json:"content"`
-	CreatedAt string `json:"created_at"`
-	UpdatedAt string `json:"updated_at"`
+type PostUpdateOptions struct {
+	Title   string `json:"title"`
+	Content string `json:"content"`
 }
 
-type PostWithUserData struct {
-	//PostInto Post
-	Id        int    `json:"id"`
-	UserId    int    `json:"user_id"`
-	UserName  string `json:"user_name"`
-	LastName  string `json:"last_name"`
-	Country   string `json:"country"`
-	Title     string `json:"title"`
-	Content   string `json:"content"`
-	CreatedAt string `json:"created_at"`
-	UpdatedAt string `json:"updated_at"`
-}
+type Posts []Post
 
-type Posts []PostWithUserData
-
-// CreatePost Init CreatePost public function
 func CreatePost(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-	w.Header().Set("Access-Control-Allow-Credentials", "true")
-
-	post := Post{}
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&post)
+	userId := auth.GetUserIdFromContext(r.Context())
+	post, err := helpers.DecodeBody[Post](r.Body, "Error")
 	if err != nil {
-		fmt.Println("Error trying fit the body to struct: %v", err.Error())
-		http.Error(w, "Error trying fit the body to struct.", http.StatusNoContent)
+		models.SendUnprocessableEntity(w, fmt.Sprintf("Error trying fit the body to struct. %v", err.Error()))
 		return
 	}
 
-	createdPost, err := createPost(post.UserId, post.Title, post.Content)
+	createdPost, err := createPost(*userId, post.Title, post.Content)
 	if err != nil {
 		fmt.Println("Error trying to create a user: ", err)
 		models.SendNoContent(w)
-	} else {
-		fmt.Println("Post created")
-	_:
-		json.NewEncoder(w).Encode(createdPost)
-		models.SendData(w, createdPost)
+		return
 	}
+	fmt.Println("Post created")
+	models.SendCreated(w, createdPost.Id)
 
 }
 
@@ -87,18 +56,10 @@ func createPost(userId string, title, content string) (*Post, error) {
 	post, errorValidPost := newPost(userId, title, content)
 	if errorValidPost != nil {
 		return nil, errorValidPost
-	} else {
-		errorInsertPost := post.insertPost()
-		if errorInsertPost != nil {
-			return nil, errorInsertPost
-		}
 	}
-
 	return post, nil
 
 }
-
-// End createPost private function
 
 func newPost(userId string, title string, content string) (*Post, error) {
 
@@ -111,128 +72,98 @@ func newPost(userId string, title string, content string) (*Post, error) {
 
 }
 
-// ValidPost Init validPost Public function
+func (post *Post) editPost(data *PostUpdateOptions) (*Post, error) {
+	post.Title = data.Title
+	post.Content = data.Content
+	post.UpdatedAt = time.Now().String()
+	errNewPost := post.ValidPost()
+	if errNewPost != nil {
+		return nil, errNewPost
+	}
+	return post, nil
+
+}
+
 func (post *Post) ValidPost() error {
-	if validUserId(post.UserId) != nil && validPostData(post.Title, post.Content) != nil {
+	if validPostData(post.Title, post.Content) != nil {
 		return models.ErrorInvalidPost
 	}
 	return nil
 }
 
-// End validPost Public function
-/*
-{
-	"user_id": 25,
-	"title": "test post,
-	"content": "Description del post de test"
-
-}
-*/
-
 func UpdatePost(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
-	w.Header().Set("Access-Control-Allow-Methods", "PUT")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 	postId := getIdByUrl(r)
 	if postId == "" {
 		http.Error(w, "No valid post Id", http.StatusNotAcceptable)
 		return
 	}
-	post := PostForOptions{}
-	decoder := json.NewDecoder(r.Body)
-	_ = decoder.Decode(&post)
-	//fmt.Println("UUid de la cookie: ", post.Uuid )
-	var userId string = "uuid"
-	//fmt.Println("USer id by post: ", post.UserId)
-	//fmt.Println("USer id by sql : ", userId)
-	sameUser := validateUserOptions(userId, post.UserId)
-	if sameUser {
-		updatedPost := editPost(postId, post.UserId, post.Title, post.Content)
-		if updatedPost != nil {
-			fmt.Println("Error trying to Update post: ", updatedPost)
-			http.Error(w, "Error trying to Update post.", http.StatusNoContent)
-		} else {
-			fmt.Println("Post Updated")
-			w.WriteHeader(http.StatusAccepted)
-			//_ = json.NewEncoder(w).Encode(updatedPost)
-			//models.SendData(w,createdPost)
-		}
-	} else {
-		http.Error(w, "You onyl can eddit your own posts.", http.StatusForbidden)
+	var userId string = *auth.GetUserIdFromContext(r.Context())
+	post, err := helpers.DecodeBody[PostUpdateOptions](r.Body, "Error")
+	if err != nil {
+		models.SendUnprocessableEntity(w, "Body couldn't be parsed body to &PostForOptions")
 	}
+	postModel, err := getPostById(postId)
+	if !Equals(userId, postModel.UserId) {
+		http.Error(w, "You onyl can eddit your own posts.", http.StatusForbidden)
+		return
+	}
+	updatedPost, errw := postModel.editPost(post)
+	if errw != nil {
+		http.Error(w, "No valid post Id", http.StatusNotAcceptable)
+		return
+	}
+	if updatedPost != nil {
+		fmt.Println("Error trying to Update post: ", updatedPost)
+		http.Error(w, "Error trying to Update post.", http.StatusNoContent)
+		return
+	}
+	fmt.Println("Post Updated")
+	w.WriteHeader(http.StatusAccepted)
+
 }
 
 // End Update Post
 
+func editPost() {
+
+}
+
 // Init DeletePost
 func DeletePost(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
-	w.Header().Set("Access-Control-Allow-Methods", "POST")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 	postId := getIdByUrl(r)
 	//fmt.Println("post de param: ", postId)
 	if postId == "" {
 		http.Error(w, "No valid post Id for Delete", http.StatusNotAcceptable)
 		return
 	}
-	post := PostForOptions{}
-	decoder := json.NewDecoder(r.Body)
-	_ = decoder.Decode(&post)
-	post.Id = postId
-	//fmt.Println("Boidy request: : ", r.Body )
-	//fmt.Println("UUid de la cookie: ", post.Uuid )
-	//fmt.Println("UUid de la cookie: ", post)
-	userId := "uuid"
-	//fmt.Println("user id 1 : ", userId )
-	//fmt.Println("posrt id: ", post.UserId)
-	sameUser := validateUserOptions(userId, post.UserId)
-	//fmt.Println("Validacion userID post userID: ", sameUser)
-	if sameUser {
-		deleteStatus := deletePost(post.Id)
-		if deleteStatus != nil {
+	userId := auth.GetUserIdFromContext(r.Context())
+	if userId != nil {
+		models.SendNotAuth(w)
+		return
+	}
+	if *userId == postId {
+		//http.Error(w, "You only can delete your own posts.", http.StatusForbidden) }
+		deleteStatus := true
+		if deleteStatus != false {
 			http.Error(w, "Has been a mistake trying yo delete your post", http.StatusNotAcceptable)
+			return
 		}
 		w.WriteHeader(http.StatusAccepted)
-	} else {
-		http.Error(w, "You only can delete your own posts.", http.StatusForbidden)
 	}
-
-}
-
-func validateUserOptions(userId string, postUserId string) bool {
-	return userId == postUserId
-}
-
-//End DeletePost
-
-// Init editPost private function
-func editPost(postId string, userId string, title, content string) error {
-	EditedPost := updatePostSql(postId, userId, title, content)
-	if EditedPost != nil {
-		return EditedPost
-	}
-	return nil
 }
 
 // End editPost private function
 
 func GetPosts(w http.ResponseWriter, _ *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
-	w.Header().Set("Access-Control-Allow-Methods", "GET")
 	allPosts := getPosts()
 	if allPosts == nil {
 		models.SendNoContent(w)
-	} else {
-		models.SendData(w, allPosts)
+		return
 	}
 
+	models.SendData(w, allPosts)
 }
 func getPosts() *Posts {
-	syncSession.Lock()
-	defer syncSession.Unlock()
 	posts := Posts{}
 	sql := "SElECT id, user_id, title, content,created_at, updated_at from POSTS"
 	rowsPost, err := config.Query(sql)
@@ -240,7 +171,7 @@ func getPosts() *Posts {
 		return nil
 	}
 	for rowsPost.Next() {
-		post := PostWithUserData{}
+		post := Post{}
 		err := rowsPost.Scan(&post.Id, &post.UserId, &post.Title, &post.Content, &post.CreatedAt, &post.UpdatedAt)
 		if err != nil {
 			fmt.Println("Could not catch any row")
@@ -252,13 +183,6 @@ func getPosts() *Posts {
 		post.CreatedAt = createdPostDateTime
 		//fmt.Println(post.CreatedAt)
 		//fmt.Println("Post id pasado: ", post.UserId)
-
-		username, lastname, country := getNameAndLastNameUser(post.UserId)
-		if len(username) > 0 && len(lastname) > 0 && len(country) > 0 {
-			post.UserName = username
-			post.LastName = lastname
-			post.Country = country
-		}
 
 		posts = append(posts, post)
 	}
@@ -288,13 +212,9 @@ func getNameAndLastNameUser(userId int) (string, string, string) {
 }
 
 func GetPostsById(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
-	w.Header().Set("Access-Control-Allow-Methods", "GET")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 	vars := mux.Vars(r)
-	postId, errConv := strconv.Atoi(vars["id"])
-	if errConv != nil {
+	postId, errConv := vars["id"]
+	if !errConv {
 		fmt.Println("The ID couldn't been catch")
 	}
 	post, errGetPost := getPostById(postId)
@@ -305,10 +225,8 @@ func GetPostsById(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(post)
 
 }
-func getPostById(postId int) (*PostWithUserData, error) {
-	syncSession.Lock()
-	defer syncSession.Unlock()
-	post := &PostWithUserData{}
+func getPostById(postId string) (*Post, error) {
+	post := &Post{}
 	sql := "SElECT id, user_id, title, content, created_at, updated_at FROM posts where id=?"
 	rowsPost, err := config.Query(sql, postId)
 	if err != nil {
@@ -320,13 +238,6 @@ func getPostById(postId int) (*PostWithUserData, error) {
 		if err != nil {
 			fmt.Println("Could not catch any row")
 			return nil, errors.New("Post not found")
-		} else {
-			username, lastname, country := getNameAndLastNameUser(post.UserId)
-			if len(username) > 0 && len(lastname) > 0 && len(country) > 0 {
-				post.UserName = username
-				post.LastName = lastname
-				post.Country = country
-			}
 		}
 		//fmt.Println(post)
 	}
@@ -338,22 +249,24 @@ func GetPostsByUser(w http.ResponseWriter, r *http.Request) {
 	userId, err := strconv.Atoi(vars["id"])
 	if err != nil {
 		fmt.Println("The ID couldn't been catch")
-	} else {
-		posts, err := getPostsByUser(userId)
-		usernameIdString := strconv.Itoa(userId)
-		if err != nil {
-			_, _ = fmt.Fprintf(w, "El usuario "+usernameIdString+" no ha creado ningun post.")
-			models.SendNoContent(w)
-		} else {
-		_:
-			json.NewEncoder(w).Encode(posts)
-		}
+		models.SendCustom(w, "The <*/id> parameter is required", 400)
+		return
 	}
 
+	posts, err := getPostsByUser(userId)
+	usernameIdString := strconv.Itoa(userId)
+	if err != nil {
+		_, _ = fmt.Fprintf(w, "El usuario "+usernameIdString+" no ha creado ningun post.")
+		models.SendNoContent(w)
+		return
+	}
+	err = json.NewEncoder(w).Encode(posts)
+	if err != nil {
+		models.SendInternalServerError(w)
+		return
+	}
 }
 func getPostsByUser(userId int) (Posts, error) {
-	syncSession.Lock()
-	defer syncSession.Unlock()
 	posts := Posts{}
 	sql := "SElECT id, user_id, title, content FROM posts where user_id=?"
 	rowsPost, err := config.Query(sql, userId)
@@ -361,7 +274,7 @@ func getPostsByUser(userId int) (Posts, error) {
 		return nil, err
 	}
 	for rowsPost.Next() {
-		post := PostWithUserData{}
+		post := Post{}
 		err := rowsPost.Scan(&post.Id, &post.UserId, &post.Title, &post.Content)
 		if err != nil {
 			fmt.Println("Could not catch any row")

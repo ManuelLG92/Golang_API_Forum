@@ -10,7 +10,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/pkg/errors v0.9.1
 	golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3
-	golang.org/x/exp v0.0.0-20230105000112-eab7a2c85304
+	golang.org/x/exp v0.0.0-20230111222715-75897c7a292a
 	gorm.io/driver/sqlite v1.4.3
 	gorm.io/gorm v1.24.0
 )

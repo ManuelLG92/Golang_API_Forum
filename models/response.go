@@ -33,6 +33,13 @@ func SendCustom(w http.ResponseWriter, message string, status int)  {
 	response.Send()
 }
 
+func SendUnprocessableEntity(w http.ResponseWriter, message string)  {
+	response := CreateDefaultResponse(w)
+	response.Status = 422
+	response.Message = message
+	response.Send()
+}
+
 func SendNotFound(w http.ResponseWriter)  {
 	response := CreateDefaultResponse(w)
 	response.NotFound()
