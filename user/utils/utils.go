@@ -4,17 +4,16 @@ import (
 	"errors"
 	"fmt"
 	"golang.com/forum/config"
-	"golang.com/forum/models"
 	user_domain "golang.com/forum/user/domain"
 	"golang.org/x/crypto/bcrypt"
 )
 
-func AutoMigrate()  {
-	err := config.Connection().AutoMigrate(&user_domain.User{})
-	if err != nil {
-		return 
-	}
-}
+// func AutoMigrate()  {
+// 	err := config.Connection().AutoMigrate(&user_domain.User{})
+// 	if err != nil {
+// 		return 
+// 	}
+// }
 
 func Login (email string, password string) (*user_domain.User, error) {
 	user, err := GetUserByEmail(email)
@@ -34,27 +33,23 @@ func CheckPassword(current string, hash string) error  {
 	return bcrypt.CompareHashAndPassword([]byte(current),[]byte(hash))
 }
 
-func existEmail(email string) (*bool,error) {
-	var us = &user_domain.User{Email: email}
-	userGorm := config.DbGorm.First(&us);
+func existEmail(email string) bool {
+	var us = &user_domain.User{}
+	userGorm := config.DbGorm.First(&us, "email = ?", email);
 	if userGorm.Error != nil{
-		fmt.Println(userGorm.Error.Error())
-		return nil, userGorm.Error
+		fmt.Printf("erro exist email. %v",userGorm.Error.Error())
+		fmt.Println()
+		return false
 	}
-
-	exists := userGorm.RowsAffected > 0
-	return &exists, nil
+	return true
 }
 
 func SaveUser(user *user_domain.User) error {
-	exist, err := existEmail(user.Email)
-	if err != nil {
-		fmt.Printf("error check user email. %v", err.Error())
-		return err
-	}
-	if *exist == true{
+	var userExists = existEmail(user.Email)
+	fmt.Printf("exists?. %v", userExists)
+	if userExists == true  {
 		fmt.Printf("user already exists with email. %v", user.Email)
-		return models.ErrorUserRegistred
+		return errors.New(fmt.Sprintf("user already exists with email. %v", user.Email))
 	}
 
 	result := config.DbGorm.Create(&user);

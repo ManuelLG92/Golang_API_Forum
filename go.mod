@@ -8,7 +8,6 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0
 	github.com/mattn/go-sqlite3 v1.14.16
-	github.com/pkg/errors v0.9.1
 	golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3
 	golang.org/x/exp v0.0.0-20230111222715-75897c7a292a
 	gorm.io/driver/sqlite v1.4.3

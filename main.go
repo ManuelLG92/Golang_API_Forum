@@ -6,29 +6,31 @@ import (
 	"net/http"
 	"github.com/gorilla/mux"
 	"golang.com/forum/config"
+	post_infra_routes "golang.com/forum/posts/infra/routes"
 	"golang.com/forum/routes"
 	user_infra "golang.com/forum/user/infraestructure"
-
 )
 
 func main() {
-	muxRouter := mux.NewRouter().StrictSlash(true)
+	muxRouter := mux.NewRouter()
 	port := ":2000"
-	config.CreateConnection()
-	config.CreateTables()
-	config.Ping()
-	defer config.CloseConnection()
 	config.Connection()
 	defer config.CloseGormConnection()
 
+	var mapRoutes []routes.Routes
 	userRoutes := user_infra.GetRoutes();
-	err := routes.Register(*userRoutes, muxRouter)
+	postRoutes := post_infra_routes.GetRoutes()
+	mapRoutes = append(mapRoutes, *postRoutes...)
+	mapRoutes = append(mapRoutes, *userRoutes...)
+
+	err := routes.Register(mapRoutes, muxRouter)
 	if err != nil {
 		fmt.Printf("Errors %v", err)
 	}
 
 	log.Println("El servidor esta a la escucha en el puerto ", port)
 	log.Fatal(http.ListenAndServe(port, muxRouter))
+	
 	//muxRouter.HandleFunc("/auth/",auth.IsUserAuth).Methods("GET")
 	/*authHandler := auth.AuthenticatedUser(handlers.GetPostsByUser)
 	muxRouter.Handle("/users/posts/{id:[0-9]+}",authHandler).Methods("GET")*/

@@ -5,17 +5,15 @@ import (
 	"log"
 	"net/http"
 	"strings"
-	validator "github.com/go-playground/validator/v10"
 	"golang.com/forum/auth"
 	"golang.com/forum/helpers"
-	"golang.com/forum/models"
 	user_domain "golang.com/forum/user/domain"
 	user_application "golang.com/forum/user/application"
 
 )
 type Login struct {
-	Email string `json:"email"`
-	Password string `json:"password"`
+	Email string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required,gte=8,lte=64"`
 }
 
 
@@ -33,23 +31,18 @@ func SingUp(w http.ResponseWriter, r *http.Request) {
 	var user *user_domain.User
 
 	user, err := helpers.DecodeBody[user_domain.User](r.Body, "missing fields on user")
-	if err != nil {
-		log.Printf("Error parsing user %v", err.Error())
-		http.Error(w, err.Error(), 400)
-		return
-	}
-
-	if err = validator.New().Struct(user); err != nil {
+	if  err != nil {
 		log.Printf("Error validaing user %v", err)
 		http.Error(w, err.Error(), 422)
 		return
 	}
+	
 	user, err = user_application.CreateUser(user)
 	if err != nil {
 		log.Printf("Error creating user %v", err.Error())
-		models.SendUnprocessableEntity(w,err.Error())
+		helpers.SendUnprocessableEntity(w,err.Error())
 	}
-	models.SendCreated(w, "User created")
+	helpers.SendCreated(w, "User created")
 }
 
 

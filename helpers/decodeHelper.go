@@ -5,15 +5,20 @@ import (
 	"io"
 	"io/ioutil"
 
-	"golang.com/forum/models"
+	"github.com/go-playground/validator/v10"
 )
 
 
 func Decode[T any](bytes []byte, message string) (*T, error) {
     out := new(T)
     if err := json.Unmarshal(bytes, out); err != nil {
-        return nil, models.UnableToParseDataToStruct(message)
+        return nil, UnableToParseDataToStruct(message)
     }
+    validate := validator.New()
+    if err := validate.Struct(out); err != nil {
+        return nil, err
+    }
+    
     return out, nil
 }
 

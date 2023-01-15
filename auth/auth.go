@@ -6,7 +6,7 @@ import (
 	"time"
 
 	jwt "github.com/golang-jwt/jwt/v4"
-	"golang.com/forum/models"
+	"golang.com/forum/helpers"
 )
 
 type JwtCustomClaims struct {
@@ -51,7 +51,7 @@ func GenerateJwt(data JwtCustomClaims) (error, *string) {
 
 func IsTokenValid(w http.ResponseWriter, r *http.Request) (error, *string)  {
 	claims := &Claims{}
-	invalidToken := models.InvalidToken
+	invalidToken := helpers.InvalidToken
 	var token = r.Header.Get("x-access-token")
 	if token == "" || len(token) < 40 {
 		fmt.Println("invalidToken length or not present")

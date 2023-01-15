@@ -7,12 +7,12 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-func getIdByUrl(r *http.Request) string {
+func GetFieldByUrl(r *http.Request, fieldName string) string {
 	vars := mux.Vars(r)
-	return vars["id"]
+	return vars[fieldName]
 }
 
-func CheckPassword(current string, hash string) error  {
+func CheckHashString(current string, hash string) error  {
 	return bcrypt.CompareHashAndPassword([]byte(current),[]byte(hash))
 }
 
