@@ -1,4 +1,4 @@
-package user_infra
+package user_controllers
 
 import (
 	"fmt"

@@ -8,13 +8,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// func AutoMigrate()  {
-// 	err := config.Connection().AutoMigrate(&user_domain.User{})
-// 	if err != nil {
-// 		return 
-// 	}
-// }
-
 func Login (email string, password string) (*user_domain.User, error) {
 	user, err := GetUserByEmail(email)
 	if err != nil {
@@ -65,19 +58,19 @@ func SaveUser(user *user_domain.User) error {
 
 
 func GetUserByEmail(email string) (*user_domain.User, error) {
-	var us = &user_domain.User{Email: email}
-	userGorm := config.DbGorm.First(&us, "email = ?", email);
-	if userGorm.Error != nil{
-		return nil, userGorm.Error
+	var user = &user_domain.User{Email: email}
+	dbResult := config.DbGorm.First(&user, "email = ?", email);
+	if dbResult.Error != nil{
+		return nil, dbResult.Error
 	}
 
-	if userGorm.RowsAffected > 0 {
-		fmt.Printf("user rows %v", us)
-		fmt.Printf("found rows %v", userGorm.RowsAffected)
-		return us, nil
+	if dbResult.RowsAffected > 0 {
+		fmt.Printf("user rows %v", user)
+		fmt.Printf("found rows %v", dbResult.RowsAffected)
+		return user, nil
 	}
 
-	fmt.Printf("not found rows %v", userGorm.RowsAffected)
+	fmt.Printf("not found rows %v", dbResult.RowsAffected)
 
 	return nil, errors.New("not found rows.")
 }

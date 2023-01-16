@@ -3,10 +3,10 @@ package routes
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"github.com/gorilla/mux"
 	"golang.com/forum/auth"
 	"golang.org/x/exp/slices"
-	"net/http"
 )
 
 const (
@@ -42,31 +42,33 @@ func Register(routes []Routes, router *mux.Router) []error {
 	var errors []error
 	count := 0
 
+
 	for _, route := range routes {
 		if err := route.validate(); err != nil {
 			errors = append(errors, err)
+			continue
 		}
 		if len(errors) == 0 {
 
 			if route.NeedsAuth {
 				router.Handle(route.Path,
-					auth.StartRequest(auth.AuthenticatedUser(http.HandlerFunc(route.Handler)))).Methods(route.Methods...)
+					auth.StartRequest(auth.AuthenticatedUser(http.HandlerFunc(route.Handler)))).Methods(route.Methods...).Name(route.Name)
 			} else {
 				router.Handle(route.Path,
-					auth.StartRequest(http.HandlerFunc(route.Handler))).Methods(route.Methods...)
+					auth.StartRequest(http.HandlerFunc(route.Handler))).Methods(route.Methods...).Name(route.Name)
 			}
 			count++
-			fmt.Printf("%v. Route: %v - Protected?: %v - Method: %v", count,route.Path, route.NeedsAuth, route.Methods)
+			fmt.Printf("%v. Route: %v - Protected?: %v - Method/s: %v", count,route.Path, route.NeedsAuth, route.Methods)
 			fmt.Println()
 			
 		}
 	}
 	if len(errors) == 0 {
+		
 		fmt.Printf("Number of routes: %v", count)
 	    fmt.Println("")
 		return nil
 	}
-
 	return errors
 
 }
