@@ -52,6 +52,7 @@ func SingIn(w http.ResponseWriter, r *http.Request) {
 	var data *Login
 
 	data, err := helpers.DecodeBody[Login](r.Body, "missing fields on user")
+	fmt.Println(r)
 	if err != nil {
 		log.Printf("Error parsing user %v", err.Error())
 		helpers.SendUnprocessableEntity(w,err.Error())
@@ -61,8 +62,8 @@ func SingIn(w http.ResponseWriter, r *http.Request) {
 	data.Password = strings.TrimSpace(data.Password)
 	token, err := user_application.Login(data.Email, data.Password, r.RemoteAddr)
 	if err != nil {
-		fmt.Printf("Error checking user token. %v", err.Error())
-		helpers.SendNotAuth(w)
+		fmt.Printf("Error checking user credentials. %v", err.Error())
+		helpers.SendCustom(w, err.Error(),400)
 		return
 	}
 	fmt.Println("authenticated user")

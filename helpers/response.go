@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
@@ -23,7 +24,10 @@ func (response *Response) Send()  {
 	response.writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 	response.writer.Header().Set("Content-Type", "application/json")
 	response.writer.WriteHeader(response.Status)
-	_= json.NewEncoder(response.writer).Encode(response)
+	r := json.NewEncoder(response.writer).Encode(response)
+	if r != nil {
+		fmt.Println("error encoder", r.Error())
+	}
 }
 
 func SendCustom(w http.ResponseWriter, message string, status int)  {

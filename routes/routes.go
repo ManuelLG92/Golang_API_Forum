@@ -50,6 +50,7 @@ func Register(routes []Routes, router *mux.Router) []error {
 		}
 		if len(errors) == 0 {
 
+			fmt.Println("router methods", route.Methods)
 			if route.NeedsAuth {
 				router.Handle(route.Path,
 					auth.StartRequest(auth.AuthenticatedUser(http.HandlerFunc(route.Handler)))).Methods(route.Methods...).Name(route.Name)
