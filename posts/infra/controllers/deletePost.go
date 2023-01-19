@@ -13,18 +13,19 @@ import (
 func DeletePost(w http.ResponseWriter, r *http.Request) {
 	postId := handlers.GetFieldByUrl(r, "id")
 	if postId == "" {
-		http.Error(w, "No valid post Id", http.StatusNotAcceptable)
+		helpers.SendUnprocessableEntity(w, "<id> parameter is required.")
 		return
 	}
 	var userId string = *auth.GetUserIdFromContext(r.Context())
 
+	fmt.Println("Before call post_application.DeletePost")
 	if err := post_application.DeletePost(userId, postId); err != nil {
-		fmt.Printf("Error trying to Update post: %v. Error: %v", postId, err.Error())
-		fmt.Println("Error trying to Update post: ", postId)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		fmt.Printf("Error trying to Delete post: %v. Error: %v", postId, err.Error())
+		fmt.Println("Error trying to Delete post: ", postId)
+		helpers.SendNotFound(w, fmt.Sprintf("Post %v not found", postId))
 		return
 	}
-	fmt.Println("Post Updated")
+	fmt.Println("Post Deleted")
 	helpers.SendNoContent(w)
 
 }

@@ -20,6 +20,7 @@ func main() {
 	var mapRoutes []routes.Routes
 	userRoutes := user_infra.GetRoutes();
 	postRoutes := post_infra_routes.GetRoutes()
+	routes.AutoMigrate()
 	mapRoutes = append(mapRoutes, *postRoutes...)
 	mapRoutes = append(mapRoutes, *userRoutes...)
 

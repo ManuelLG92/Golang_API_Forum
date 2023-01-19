@@ -40,9 +40,10 @@ func SendUnprocessableEntity(w http.ResponseWriter, message string)  {
 	response.Send()
 }
 
-func SendNotFound(w http.ResponseWriter)  {
+func SendNotFound(w http.ResponseWriter, data interface{})  {
 	response := CreateDefaultResponse(w)
 	response.NotFound()
+	response.Data = data
 	response.Send()
 }
 func (response *Response) NotFound()  {

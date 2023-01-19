@@ -14,20 +14,21 @@ import (
 func UpdatePost(w http.ResponseWriter, r *http.Request) {
 	postId := handlers.GetFieldByUrl(r, "id")
 	if postId == "" {
-		http.Error(w, "No valid post Id", http.StatusNotAcceptable)
+		helpers.SendUnprocessableEntity(w, "<id> parameter is required.")
 		return
 	}
 	var userId string = *auth.GetUserIdFromContext(r.Context())
-	post, err := helpers.DecodeBody[post_domain.PostUpdatableFields](r.Body, "Error tryig to update the post. ")
+	post, err := helpers.DecodeBody[post_domain.PostUpdatableFields](r.Body, "Error trying to update the post")
 	if err != nil {
 		helpers.SendUnprocessableEntity(w, err.Error())
+		return
 	}
 
 	response, err := post_application.UpdatePost(userId, postId, *post)
 	if err != nil {
 		fmt.Printf("Error trying to Update post: %v. Error: %v", postId, err.Error())
 		fmt.Println("Error trying to Update post: ", postId)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		helpers.SendNotFound(w, fmt.Sprintf("Post %v not found", postId))
 		return
 	}
 	fmt.Println("Post Updated")

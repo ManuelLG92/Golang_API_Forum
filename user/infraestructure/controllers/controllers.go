@@ -33,7 +33,7 @@ func SingUp(w http.ResponseWriter, r *http.Request) {
 	user, err := helpers.DecodeBody[user_domain.User](r.Body, "missing fields on user")
 	if  err != nil {
 		log.Printf("Error validaing user %v", err)
-		http.Error(w, err.Error(), 422)
+		helpers.SendUnprocessableEntity(w,err.Error())
 		return
 	}
 	
@@ -41,6 +41,7 @@ func SingUp(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("Error creating user %v", err.Error())
 		helpers.SendUnprocessableEntity(w,err.Error())
+		return
 	}
 	helpers.SendCreated(w, "User created")
 }
@@ -53,7 +54,7 @@ func SingIn(w http.ResponseWriter, r *http.Request) {
 	data, err := helpers.DecodeBody[Login](r.Body, "missing fields on user")
 	if err != nil {
 		log.Printf("Error parsing user %v", err.Error())
-		http.Error(w, err.Error(), 400)
+		helpers.SendUnprocessableEntity(w,err.Error())
 		return
 	}
 	data.Email = strings.TrimSpace(data.Email)
@@ -61,7 +62,7 @@ func SingIn(w http.ResponseWriter, r *http.Request) {
 	token, err := user_application.Login(data.Email, data.Password, r.RemoteAddr)
 	if err != nil {
 		fmt.Printf("Error checking user token. %v", err.Error())
-		http.Error(w, err.Error(), 401)
+		helpers.SendNotAuth(w)
 		return
 	}
 	fmt.Println("authenticated user")

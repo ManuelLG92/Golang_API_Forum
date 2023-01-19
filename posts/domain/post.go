@@ -50,7 +50,7 @@ func (post *Post) EditPost(data *PostUpdatableFields) (*Post, error) {
 
 func NewPost(userId string, title string, content string) (*Post, error) {
 
-	post := &Post{Id: uuid.New().String(), UserId: userId, Title: title, Content: content}
+	post := &Post{Id: uuid.New().String(), UserId: userId, Title: title, Content: content, CreatedAt: time.Now().String()}
 	if err := post.ValidPost(); err != nil {
 		return nil, err
 	}

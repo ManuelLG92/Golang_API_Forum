@@ -11,23 +11,23 @@ func GetRoutes() *[]routes.Routes {
 
 	return &[]routes.Routes{
 		{
-			Path: "/post", 
+			Path: "/posts", 
 			Name: "post-create", 
 			Methods: []string{http.MethodPost, http.MethodOptions}, 
 			Handler: post_infra_controllers.CreatePost, 
 			NeedsAuth: true,
 		},
 		{
-			Path: "/post", 
+			Path: "/posts/{id}", 
 			Name: "post-delete", 
 			Methods: []string{http.MethodDelete, http.MethodOptions}, 
 			Handler: post_infra_controllers.DeletePost, 
 			NeedsAuth: true,
 		},
 		{
-			Path: "/post", 
+			Path: "/posts/{id}", 
 			Name: "post-update", 
-			Methods: []string{http.MethodDelete, http.MethodPut}, 
+			Methods: []string{http.MethodPut, http.MethodOptions}, 
 			Handler: post_infra_controllers.UpdatePost, 
 			NeedsAuth: true,
 		},
