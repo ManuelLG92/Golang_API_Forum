@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 
@@ -24,6 +25,7 @@ func Decode[T any](bytes []byte, message string) (*T, error) {
 
 func DecodeBody[T any](body io.ReadCloser, message string) (*T, error) {
     reqBody, err := ioutil.ReadAll(body)
+    fmt.Println("reqBody", reqBody)
 	 if err != nil {
 		return nil, err
 	}

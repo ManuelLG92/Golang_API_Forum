@@ -1,1 +1,4 @@
 *.db
+.DS-*
+/.idea
+/http-client

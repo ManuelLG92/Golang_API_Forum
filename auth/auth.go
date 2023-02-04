@@ -5,19 +5,17 @@ import (
 	"net/http"
 	"time"
 
+	"forum/helpers"
 	jwt "github.com/golang-jwt/jwt/v4"
-	"golang.com/forum/helpers"
 )
 
 type JwtCustomClaims struct {
-	Id          string  
-	Name        string 
-	Email        string 
-	Password        string 
-	IP          string 
-	jwt.StandardClaims
+	Id    string
+	Name  string
+	Email string
+	IP    string
+	jwt.RegisteredClaims
 }
-
 
 type Claims struct {
 	Id string `json:"id"`
@@ -25,22 +23,21 @@ type Claims struct {
 }
 
 var jwtKey = []byte("my_secret_key")
+
 func GenerateJwt(data JwtCustomClaims) (error, *string) {
 
+	expirationTime := time.Now().Add(time.Hour * 24)
 	claims := &JwtCustomClaims{
 		data.Id,
 		data.Name,
 		data.Email,
-		data.Password,
 		data.IP,
-		jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Minute * 20).Unix(),
+		jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(expirationTime),
 		},
 	}
 
-
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
 
 	signedStringToken, err := token.SignedString(jwtKey)
 	if err != nil {
@@ -49,7 +46,7 @@ func GenerateJwt(data JwtCustomClaims) (error, *string) {
 	return nil, &signedStringToken
 }
 
-func IsTokenValid(w http.ResponseWriter, r *http.Request) (error, *string)  {
+func IsTokenValid(_ http.ResponseWriter, r *http.Request) (error, *string) {
 	claims := &Claims{}
 	invalidToken := helpers.InvalidToken
 	var token = r.Header.Get("x-access-token")
@@ -62,12 +59,12 @@ func IsTokenValid(w http.ResponseWriter, r *http.Request) (error, *string)  {
 		return jwtKey, nil
 	})
 	if err != nil {
-		fmt.Println("error invalidToken")
-	fmt.Println(invalidToken.Error())
+		fmt.Println("error invalidToken", token)
+		fmt.Println(invalidToken.Error())
 		return invalidToken, nil
 	}
-	if  !tkn.Valid {
-	   fmt.Println(invalidToken.Error())
+	if !tkn.Valid {
+		fmt.Println(invalidToken.Error())
 		return invalidToken, nil
 	}
 
