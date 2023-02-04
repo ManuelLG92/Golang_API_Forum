@@ -1,15 +1,16 @@
 package post_application
 
 import (
-	post_domain "forum/posts/domain"
-	post_utils "forum/posts/utils"
+	"forum/posts/response"
+	postUtils "forum/posts/utils"
 )
 
-func GetPostsByUser(userId string) (*[]post_domain.Post, error) {
-	posts, err := post_utils.GetPostsByUser(userId)
+func GetPostsByUser(userId string) (*[]response.GetPostsDto, error) {
+	posts, err := postUtils.GetPostsByUser(userId)
 	if err != nil {
 		return nil, err
 	}
-	return posts, nil
+	postsDto, _ := response.Transform(posts)
+	return postsDto, nil
 
 }

@@ -51,22 +51,16 @@ func Register(routes []Routes, router *mux.Router) []error {
 
 			fmt.Println("router methods", route.Methods)
 			if route.NeedsAuth {
-				router.Handle(route.Path,
-					auth.StartRequest(auth.AuthenticatedUser(http.HandlerFunc(route.Handler)))).Methods(route.Methods...).Name(route.Name)
+				router.Handle(route.Path, auth.AuthenticatedUser(route.Handler)).Methods(route.Methods...).Name(route.Name)
 			} else {
-				router.Handle(route.Path,
-					auth.StartRequest(http.HandlerFunc(route.Handler))).Methods(route.Methods...).Name(route.Name)
+				router.HandleFunc(route.Path, route.Handler).Methods(route.Methods...).Name(route.Name)
 			}
 			count++
-			fmt.Printf("%v. Route: %v - Protected?: %v - Method/s: %v", count, route.Path, route.NeedsAuth, route.Methods)
-			fmt.Println()
-
+			fmt.Printf("%v. Route: %v - Protected?: %v - Method/s: %v. \n", count, route.Path, route.NeedsAuth, route.Methods)
 		}
 	}
 	if len(routesErrors) == 0 {
-
-		fmt.Printf("Number of routes: %v", count)
-		fmt.Println("")
+		fmt.Printf("Number of routes: %v. \n", count)
 		return nil
 	}
 	return routesErrors

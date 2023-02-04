@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"forum/config"
 	postInfraRoutes "forum/posts/infra/routes"
@@ -9,7 +10,10 @@ import (
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
+	"time"
 )
+
+const ContextStartAt = "start-at"
 
 func enableCORS(router *mux.Router) {
 	router.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -20,16 +24,18 @@ func enableCORS(router *mux.Router) {
 func middlewareCors(next http.Handler) http.Handler {
 	return http.HandlerFunc(
 		func(w http.ResponseWriter, req *http.Request) {
-			// Just put some headers to allow CORS...
 			w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
 			w.Header().Set("Access-Control-Allow-Credentials", "true")
 			w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 			//w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, x-access-token. X-Access-Token")
 			w.Header().Set("Access-Control-Allow-Headers", "*")
 			w.Header().Set("Access-Control-Expose-Headers", "x-access-token, X-Access-Token")
-
-			// and call next handler!
-			next.ServeHTTP(w, req)
+			fmt.Println("req body start request", req.Body)
+			ctx := req.Context()
+			ctx = context.WithValue(ctx, ContextStartAt, time.Now())
+			defer fmt.Println(time.Now().String() + "after")
+			next.ServeHTTP(w, req.WithContext(ctx))
+			//next.ServeHTTP(w, req)
 		})
 }
 func main() {
@@ -49,10 +55,10 @@ func main() {
 	err := routes.Register(mapRoutes, router)
 	if err != nil {
 		fmt.Printf("Errors %v", err)
-		panic(fmt.Sprintf("Has been an error registerin the routes. Message: %v", err))
+		panic(fmt.Sprintf("Has been an error registering the routes. Message: %v", err))
 	}
 
-	log.Println("El servidor esta a la escucha en el puerto ", port)
+	log.Println("Server listening on port  #", port)
 	log.Fatal(http.ListenAndServe(port, router))
 
 }
