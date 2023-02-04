@@ -3,8 +3,8 @@ package post_application
 import (
 	"fmt"
 
-	post_domain "golang.com/forum/posts/domain"
-	post_utils "golang.com/forum/posts/utils"
+	post_domain "forum/posts/domain"
+	post_utils "forum/posts/utils"
 )
 
 func UpdatePost(userId string, postId string, data post_domain.PostUpdatableFields) (*post_domain.Post, error) {
@@ -18,9 +18,8 @@ func UpdatePost(userId string, postId string, data post_domain.PostUpdatableFiel
 	}
 	if err := post_utils.Save(post); err != nil {
 		fmt.Printf("Error updating the post. %v", err.Error())
-		return nil,err
+		return nil, err
 	}
 	return post, nil
 
 }
-

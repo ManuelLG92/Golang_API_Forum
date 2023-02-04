@@ -3,10 +3,10 @@ package routes
 import (
 	"errors"
 	"fmt"
-	"net/http"
+	"forum/auth"
 	"github.com/gorilla/mux"
-	"golang.com/forum/auth"
 	"golang.org/x/exp/slices"
+	"net/http"
 )
 
 const (
@@ -14,7 +14,7 @@ const (
 	POST    string = http.MethodPost
 	PUT     string = http.MethodPut
 	PATCH   string = http.MethodPatch
-	DELETE     string = http.MethodDelete
+	DELETE  string = http.MethodDelete
 	OPTIONS string = http.MethodOptions
 )
 
@@ -39,16 +39,15 @@ func (r *Routes) validate() error {
 }
 
 func Register(routes []Routes, router *mux.Router) []error {
-	var errors []error
+	var routesErrors []error
 	count := 0
-
 
 	for _, route := range routes {
 		if err := route.validate(); err != nil {
-			errors = append(errors, err)
+			routesErrors = append(routesErrors, err)
 			continue
 		}
-		if len(errors) == 0 {
+		if len(routesErrors) == 0 {
 
 			fmt.Println("router methods", route.Methods)
 			if route.NeedsAuth {
@@ -59,17 +58,17 @@ func Register(routes []Routes, router *mux.Router) []error {
 					auth.StartRequest(http.HandlerFunc(route.Handler))).Methods(route.Methods...).Name(route.Name)
 			}
 			count++
-			fmt.Printf("%v. Route: %v - Protected?: %v - Method/s: %v", count,route.Path, route.NeedsAuth, route.Methods)
+			fmt.Printf("%v. Route: %v - Protected?: %v - Method/s: %v", count, route.Path, route.NeedsAuth, route.Methods)
 			fmt.Println()
-			
+
 		}
 	}
-	if len(errors) == 0 {
-		
+	if len(routesErrors) == 0 {
+
 		fmt.Printf("Number of routes: %v", count)
-	    fmt.Println("")
+		fmt.Println("")
 		return nil
 	}
-	return errors
+	return routesErrors
 
 }

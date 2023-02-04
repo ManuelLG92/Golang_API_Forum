@@ -2,13 +2,12 @@ package post_infra_controllers
 
 import (
 	"fmt"
-	"golang.com/forum/auth"
-	"golang.com/forum/handlers"
+	"forum/auth"
+	"forum/handlers"
+	"forum/helpers"
+	post_application "forum/posts/application"
 	"net/http"
-	"golang.com/forum/helpers"
-	post_application "golang.com/forum/posts/application"
 )
-
 
 func DeletePost(w http.ResponseWriter, r *http.Request) {
 	postId := handlers.GetFieldByUrl(r, "id")

@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"net/http"
 
-	"golang.com/forum/auth"
-	"golang.com/forum/handlers"
-	"golang.com/forum/helpers"
-	post_application "golang.com/forum/posts/application"
-	post_domain "golang.com/forum/posts/domain"
+	"forum/auth"
+	"forum/handlers"
+	"forum/helpers"
+	post_application "forum/posts/application"
+	post_domain "forum/posts/domain"
 )
 
 func UpdatePost(w http.ResponseWriter, r *http.Request) {

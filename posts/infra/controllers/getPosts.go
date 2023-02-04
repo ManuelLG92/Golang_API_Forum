@@ -2,10 +2,10 @@ package post_infra_controllers
 
 import (
 	"fmt"
-	"golang.com/forum/auth"
+	"forum/auth"
+	"forum/helpers"
+	post_application "forum/posts/application"
 	"net/http"
-	"golang.com/forum/helpers"
-	post_application "golang.com/forum/posts/application"
 )
 
 func GetPosts(w http.ResponseWriter, r *http.Request) {
@@ -21,4 +21,3 @@ func GetPosts(w http.ResponseWriter, r *http.Request) {
 	helpers.SendData(w, &posts)
 
 }
-

@@ -3,9 +3,8 @@ package post_application
 import (
 	"fmt"
 
-	post_utils "golang.com/forum/posts/utils"
+	post_utils "forum/posts/utils"
 )
-
 
 func DeletePost(userId string, postId string) error {
 	fmt.Println("init post_application.DeletePost")

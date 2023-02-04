@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"golang.com/forum/auth"
-	"golang.com/forum/helpers"
-	post_application "golang.com/forum/posts/application"
-	post_domain "golang.com/forum/posts/domain"
+	"forum/auth"
+	"forum/helpers"
+	post_application "forum/posts/application"
+	post_domain "forum/posts/domain"
 )
 
 func CreatePost(w http.ResponseWriter, r *http.Request) {

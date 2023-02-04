@@ -3,8 +3,8 @@ package post_domain
 import (
 	"time"
 
+	"forum/helpers"
 	"github.com/google/uuid"
-	"golang.com/forum/helpers"
 )
 
 type Post struct {
@@ -40,7 +40,7 @@ func (post *Post) validPostData() error {
 func (post *Post) EditPost(data *PostUpdatableFields) (*Post, error) {
 	post.Title = data.Title
 	post.Content = data.Content
-	post.UpdatedAt = time.Now().String()
+	post.UpdatedAt = time.Now().UTC().Format(time.RFC3339)
 	if err := post.ValidPost(); err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func (post *Post) EditPost(data *PostUpdatableFields) (*Post, error) {
 
 func NewPost(userId string, title string, content string) (*Post, error) {
 
-	post := &Post{Id: uuid.New().String(), UserId: userId, Title: title, Content: content, CreatedAt: time.Now().String()}
+	post := &Post{Id: uuid.New().String(), UserId: userId, Title: title, Content: content, CreatedAt: time.Now().UTC().Format(time.RFC3339)}
 	if err := post.ValidPost(); err != nil {
 		return nil, err
 	}

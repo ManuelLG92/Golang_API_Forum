@@ -1,8 +1,8 @@
 package post_application
 
 import (
-	post_domain "golang.com/forum/posts/domain"
-	post_utils "golang.com/forum/posts/utils"
+	post_domain "forum/posts/domain"
+	post_utils "forum/posts/utils"
 )
 
 func CreatePost(userId string, data post_domain.PostUpdatableFields) (*post_domain.Post, error) {
