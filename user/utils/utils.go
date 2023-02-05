@@ -4,11 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"forum/config"
-	user_domain "forum/user/domain"
+	"forum/storage"
+	userDomain "forum/user/domain"
 	"golang.org/x/crypto/bcrypt"
 )
 
-func Login(email string, password string) (*user_domain.User, error) {
+var cache = storage.NewCache[userDomain.User]()
+
+func Login(email string, password string) (*userDomain.User, error) {
 	user, err := GetUserByEmail(email)
 	if err != nil {
 		return nil, err
@@ -27,17 +30,21 @@ func CheckPassword(current string, hash string) error {
 }
 
 func existEmail(email string) bool {
-	var us = &user_domain.User{}
+	var us = &userDomain.User{}
+	if result := cache.Get(email); result != nil {
+		return true
+	}
 	userGorm := config.DbGorm.First(&us, "email = ?", email)
-	if userGorm.Error != nil {
+	if userGorm.Error != nil || us.Id == "" {
 		fmt.Printf("erro exist email. %v", userGorm.Error.Error())
 		fmt.Println()
 		return false
 	}
+	cache.Set(us.Id, *us)
 	return true
 }
 
-func SaveUser(user *user_domain.User) error {
+func SaveUser(user *userDomain.User) error {
 	var userExists = existEmail(user.Email)
 	fmt.Printf("exists?. %v", userExists)
 	if userExists == true {
@@ -55,8 +62,11 @@ func SaveUser(user *user_domain.User) error {
 	return nil
 }
 
-func GetUserByEmail(email string) (*user_domain.User, error) {
-	var user = &user_domain.User{}
+func GetUserByEmail(email string) (*userDomain.User, error) {
+	var user = &userDomain.User{}
+	if result := cache.Get(email); result != nil {
+		return result, nil
+	}
 	dbResult := config.DbGorm.First(&user, "email = ?", email)
 	if dbResult.Error != nil {
 		return nil, dbResult.Error
@@ -65,6 +75,7 @@ func GetUserByEmail(email string) (*user_domain.User, error) {
 	if dbResult.RowsAffected > 0 {
 		fmt.Printf("user rows %v", user)
 		fmt.Printf("found rows %v", dbResult.RowsAffected)
+		cache.Set(email, *user)
 		return user, nil
 	}
 

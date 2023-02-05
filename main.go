@@ -24,6 +24,7 @@ func enableCORS(router *mux.Router) {
 func middlewareCors(next http.Handler) http.Handler {
 	return http.HandlerFunc(
 		func(w http.ResponseWriter, req *http.Request) {
+			startReq := time.Now()
 			w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
 			w.Header().Set("Access-Control-Allow-Credentials", "true")
 			w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
@@ -32,8 +33,8 @@ func middlewareCors(next http.Handler) http.Handler {
 			w.Header().Set("Access-Control-Expose-Headers", "x-access-token, X-Access-Token")
 			fmt.Println("req body start request", req.Body)
 			ctx := req.Context()
-			ctx = context.WithValue(ctx, ContextStartAt, time.Now())
-			defer fmt.Println(time.Now().String() + "after")
+			ctx = context.WithValue(ctx, ContextStartAt, startReq)
+			defer fmt.Printf("Request time: %v ", time.Since(startReq).Microseconds())
 			next.ServeHTTP(w, req.WithContext(ctx))
 			//next.ServeHTTP(w, req)
 		})
