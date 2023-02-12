@@ -6,7 +6,14 @@ import (
 	"forum/config"
 	postDomain "forum/posts/domain"
 	"forum/storage"
+	"gorm.io/gorm"
+	"math"
 )
+
+type PostList struct {
+	config.Pagination
+	Data []postDomain.Post
+}
 
 var cache = storage.NewCache[postDomain.Post]()
 
@@ -19,6 +26,7 @@ func GetPostByIdAndUserId(postId, userId string) (*postDomain.Post, error) {
 	fmt.Println("GetPostByIdAndUserId init", postId, userId)
 
 	var post = &postDomain.Post{}
+
 	if err := config.DbGorm.Where("id = ? AND user_id = ?", postId, userId).First(&post); err.Error != nil {
 		fmt.Println("error quering", err)
 		return nil, err.Error
@@ -32,23 +40,80 @@ func GetPostByIdAndUserId(postId, userId string) (*postDomain.Post, error) {
 	return post, nil
 }
 
-func GetPostsByUser(userId string) (*[]postDomain.Post, error) {
+func GetPostsByUser(userId string) (*PostList, error) {
 
 	var posts []postDomain.Post
-	postGorm := config.DbGorm.Where("user_id = ?", userId).Find(&posts)
-	if postGorm.Error != nil {
-		return nil, postGorm.Error
+	pagination := config.Pagination{Limit: 10}
+	postsList := PostList{pagination, posts}
+	values, err := listByMe(&postsList, userId)
+	if err != nil {
+		fmt.Printf("error %v \n", err)
+		return nil, err
 	}
-	return &posts, nil
+
+	return values, nil
+
 }
 
-func GetPosts() (*[]postDomain.Post, error) {
+func GetPosts(pagination config.Pagination) (*PostList, error) {
 	var posts []postDomain.Post
-	postGorm := config.DbGorm.Find(&posts)
-	if postGorm.Error != nil {
-		return nil, postGorm.Error
+	postsList := PostList{pagination, posts}
+
+	values, err := list(&postsList)
+	if err != nil {
+		fmt.Printf("error %v \n", err)
+		return nil, err
 	}
-	return &posts, nil
+
+	return values, nil
+
+}
+
+func listByMe(pagination *PostList, userId string) (*PostList, error) {
+	var values, err = listFactory(pagination, "custom", "user_id = ?", userId)
+	var posts []postDomain.Post
+	if err != nil {
+		return nil, err
+	}
+	pagination.Data = posts
+	return values, nil
+}
+
+func list(pagination *PostList) (*PostList, error) {
+	var values, err = listFactory(pagination, "all")
+	if err != nil {
+		return nil, err
+	}
+	return values, nil
+}
+
+func listFactory(pagination *PostList, kind string, data ...interface{}) (*PostList, error) {
+	var posts []postDomain.Post
+	var result *gorm.DB
+	switch {
+	case kind == "custom":
+		result = config.DbGorm.Scopes(paginate(pagination, config.DbGorm)).Where(data).Find(&posts)
+	default:
+		result = config.DbGorm.Scopes(paginate(pagination, config.DbGorm)).Find(&posts)
+	}
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	pagination.Data = posts
+	return pagination, nil
+
+}
+
+func paginate(pagination *PostList, db *gorm.DB) func(db *gorm.DB) *gorm.DB {
+
+	var totalRows int64
+	db.Model(postDomain.Post{}).Count(&totalRows)
+	pagination.TotalRows = totalRows
+	totalPages := int(math.Ceil(float64(totalRows) / float64(pagination.Limit)))
+	pagination.TotalPages = totalPages
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Offset(pagination.GetOffset()).Limit(pagination.GetLimit()).Order(pagination.GetSort())
+	}
 }
 
 func Save(post *postDomain.Post) error {

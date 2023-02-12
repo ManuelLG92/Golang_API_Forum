@@ -2,6 +2,7 @@ package post_application
 
 import (
 	"fmt"
+	"forum/config"
 	"forum/posts/response"
 	postUtils "forum/posts/utils"
 )
@@ -17,8 +18,8 @@ type PostWithUserInformation struct {
 	UpdatedAt    string `json:"updated_at"`
 }
 
-func GetPosts() (*[]response.GetPostsDto, error) {
-	posts, err := postUtils.GetPosts()
+func GetPosts(pagination config.Pagination) (*response.GetPostsDtoPaginated, error) {
+	posts, err := postUtils.GetPosts(pagination)
 	if err != nil {
 		fmt.Println("Error -> postUtils.GetPosts ", err.Error())
 		return nil, err

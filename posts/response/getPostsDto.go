@@ -2,7 +2,8 @@ package response
 
 import (
 	"fmt"
-	postDomain "forum/posts/domain"
+	"forum/config"
+	post_utils "forum/posts/utils"
 	"forum/user/infraestructure/entryPoint"
 )
 
@@ -17,11 +18,18 @@ type GetPostsDto struct {
 	UpdatedAt    string `json:"updated_at"`
 }
 
-func Transform(posts *[]postDomain.Post) (*[]GetPostsDto, error) {
+type GetPostsDtoPaginated struct {
+	config.Pagination
+	Data []GetPostsDto
+}
+
+func Transform(postList *post_utils.PostList) (*GetPostsDtoPaginated, error) {
 
 	var errors []string
 	var postsDto []GetPostsDto
-	for _, post := range *posts {
+	var posts = postList.Data
+	paginated := GetPostsDtoPaginated{postList.Pagination, postsDto}
+	for _, post := range posts {
 		user, err := entryPoint.FetchUserById(post.UserId)
 		if err != nil {
 			errors = append(errors, err.Error())
@@ -44,6 +52,7 @@ func Transform(posts *[]postDomain.Post) (*[]GetPostsDto, error) {
 	if len(errors) > 0 {
 		fmt.Printf("Errors -> %v \n", errors)
 	}
-	return &postsDto, nil
+	paginated.Data = postsDto
+	return &paginated, nil
 
 }

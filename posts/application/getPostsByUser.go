@@ -5,7 +5,7 @@ import (
 	postUtils "forum/posts/utils"
 )
 
-func GetPostsByUser(userId string) (*[]response.GetPostsDto, error) {
+func GetPostsByUser(userId string) (*response.GetPostsDtoPaginated, error) {
 	posts, err := postUtils.GetPostsByUser(userId)
 	if err != nil {
 		return nil, err
