@@ -4,16 +4,19 @@ import (
 	"context"
 	"fmt"
 	"forum/config"
+	"forum/helpers"
 	postInfraRoutes "forum/posts/infra/routes"
 	"forum/routes"
 	userInfra "forum/user/infraestructure"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 )
 
 const ContextStartAt = "start-at"
+const PaginateFromMiddleware = "paginate"
 
 func enableCORS(router *mux.Router) {
 	router.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -34,6 +37,14 @@ func middlewareCors(next http.Handler) http.Handler {
 			fmt.Println("req body start request", req.Body)
 			ctx := req.Context()
 			ctx = context.WithValue(ctx, ContextStartAt, startReq)
+			if req.Method == http.MethodGet {
+				var paginate config.Pagination
+				if validations := paginate.PaginateFromUrlQueryParams(req.URL.Query()); validations != nil {
+					helpers.SendUnprocessableEntity(w, strings.Join(*validations, ","))
+					return
+				}
+				ctx = context.WithValue(ctx, PaginateFromMiddleware, paginate)
+			}
 			defer fmt.Printf("Request time: %v ", time.Since(startReq).Microseconds())
 			next.ServeHTTP(w, req.WithContext(ctx))
 			//next.ServeHTTP(w, req)

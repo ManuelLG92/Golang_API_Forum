@@ -24,7 +24,8 @@ type Routes struct {
 	Methods []string
 	Handler func(http.ResponseWriter,
 		*http.Request)
-	NeedsAuth bool
+	NeedsAuth       bool
+	AllowPagination bool
 }
 
 var availableMethods = []string{GET, POST, PUT, PATCH, DELETE, OPTIONS}

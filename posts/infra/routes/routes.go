@@ -31,11 +31,11 @@ func GetRoutes() *[]routes.Routes {
 			NeedsAuth: true,
 		},
 		{
-			Path:      "/posts/latest",
-			Name:      "post-latest",
-			Methods:   []string{http.MethodGet},
-			Handler:   post_infra_controllers.GetPosts,
-			NeedsAuth: false,
+			Path:            "/posts/latest",
+			Name:            "post-latest",
+			Methods:         []string{http.MethodGet},
+			Handler:         post_infra_controllers.GetPosts,
+			AllowPagination: true,
 		},
 		{
 			Path:      "/posts/me",

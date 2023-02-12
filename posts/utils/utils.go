@@ -15,6 +15,10 @@ type PostList struct {
 	Data []postDomain.Post
 }
 
+type BadRequestError struct {
+	Err error
+}
+
 var cache = storage.NewCache[postDomain.Post]()
 
 func GetPostByIdAndUserId(postId, userId string) (*postDomain.Post, error) {
@@ -90,11 +94,16 @@ func list(pagination *PostList) (*PostList, error) {
 func listFactory(pagination *PostList, kind string, data ...interface{}) (*PostList, error) {
 	var posts []postDomain.Post
 	var result *gorm.DB
+	buildPagination := paginate(pagination, config.DbGorm)
+	if pagination.Page > pagination.TotalPages {
+		buildError := errors.New(fmt.Sprintf("Invalid page. Maximum of pages available for your query is: %v and you requested %v", pagination.TotalPages, pagination.Page))
+		return nil, BadRequestError{Err: buildError}.Err
+	}
 	switch {
 	case kind == "custom":
-		result = config.DbGorm.Scopes(paginate(pagination, config.DbGorm)).Where(data).Find(&posts)
+		result = config.DbGorm.Scopes(buildPagination).Where(data).Find(&posts)
 	default:
-		result = config.DbGorm.Scopes(paginate(pagination, config.DbGorm)).Find(&posts)
+		result = config.DbGorm.Scopes(buildPagination).Find(&posts)
 	}
 	if result.Error != nil {
 		return nil, result.Error
@@ -112,6 +121,9 @@ func paginate(pagination *PostList, db *gorm.DB) func(db *gorm.DB) *gorm.DB {
 	totalPages := int(math.Ceil(float64(totalRows) / float64(pagination.Limit)))
 	pagination.TotalPages = totalPages
 	return func(db *gorm.DB) *gorm.DB {
+		if pagination.Page > totalPages {
+
+		}
 		return db.Offset(pagination.GetOffset()).Limit(pagination.GetLimit()).Order(pagination.GetSort())
 	}
 }
