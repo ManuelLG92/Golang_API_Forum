@@ -96,7 +96,7 @@ func listFactory(pagination *PostList, kind string, data ...interface{}) (*PostL
 	var result *gorm.DB
 	buildPagination := paginate(pagination, config.DbGorm)
 	if pagination.Page > pagination.TotalPages {
-		buildError := errors.New(fmt.Sprintf("Invalid page. Maximum of pages available for your query is: %v and you requested %v", pagination.TotalPages, pagination.Page))
+		buildError := errors.New(fmt.Sprintf("Out of bounds page. The highest page for your query is: %v, and you requested %v", pagination.TotalPages, pagination.Page))
 		return nil, BadRequestError{Err: buildError}.Err
 	}
 	switch {
