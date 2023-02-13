@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"forum/config"
+	"forum/helpers"
 	postDomain "forum/posts/domain"
 	"forum/storage"
 	"gorm.io/gorm"
@@ -12,12 +13,16 @@ import (
 
 type PostList struct {
 	config.Pagination
-	Data []postDomain.Post
+	Data []postDomain.Post `json:"data"`
 }
 
 type BadRequestError struct {
 	Err error
 }
+
+const (
+	listCustom = "custom"
+)
 
 var cache = storage.NewCache[postDomain.Post]()
 
@@ -74,7 +79,7 @@ func GetPosts(pagination config.Pagination) (*PostList, error) {
 }
 
 func listByMe(pagination *PostList, userId string) (*PostList, error) {
-	var values, err = listFactory(pagination, "custom", "user_id = ?", userId)
+	var values, err = listFactory(pagination, listCustom, "user_id = ?", userId)
 	var posts []postDomain.Post
 	if err != nil {
 		return nil, err
@@ -100,7 +105,7 @@ func listFactory(pagination *PostList, kind string, data ...interface{}) (*PostL
 		return nil, BadRequestError{Err: buildError}.Err
 	}
 	switch {
-	case kind == "custom":
+	case kind == listCustom:
 		result = config.DbGorm.Scopes(buildPagination).Where(data).Find(&posts)
 	default:
 		result = config.DbGorm.Scopes(buildPagination).Find(&posts)
@@ -115,15 +120,17 @@ func listFactory(pagination *PostList, kind string, data ...interface{}) (*PostL
 
 func paginate(pagination *PostList, db *gorm.DB) func(db *gorm.DB) *gorm.DB {
 
+	host := helpers.Get("HOST")
 	var totalRows int64
 	db.Model(postDomain.Post{}).Count(&totalRows)
 	pagination.TotalRows = totalRows
 	totalPages := int(math.Ceil(float64(totalRows) / float64(pagination.Limit)))
 	pagination.TotalPages = totalPages
+	for i := 0; i < totalPages; i++ {
+		builder := fmt.Sprintf("%s/posts/latest?page=%v&limit=%v", host, i+1, pagination.Limit)
+		pagination.Links = append(pagination.Links, builder)
+	}
 	return func(db *gorm.DB) *gorm.DB {
-		if pagination.Page > totalPages {
-
-		}
 		return db.Offset(pagination.GetOffset()).Limit(pagination.GetLimit()).Order(pagination.GetSort())
 	}
 }

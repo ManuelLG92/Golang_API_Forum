@@ -20,7 +20,7 @@ type GetPostsDto struct {
 
 type GetPostsDtoPaginated struct {
 	config.Pagination
-	Data []GetPostsDto
+	Data []GetPostsDto `json:"data"`
 }
 
 func Transform(postList *post_utils.PostList) (*GetPostsDtoPaginated, error) {

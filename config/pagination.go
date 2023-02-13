@@ -7,11 +7,12 @@ import (
 )
 
 type Pagination struct {
-	Limit      int    `json:"limit,omitempty;query:limit"`
-	Page       int    `json:"page,omitempty;query:page"`
-	Sort       string `json:"sort,omitempty;query:sort"`
-	TotalRows  int64  `json:"total_rows"`
-	TotalPages int    `json:"total_pages"`
+	Limit      int      `json:"limit,omitempty;query:limit"`
+	Page       int      `json:"page,omitempty;query:page"`
+	Sort       string   `json:"sort,omitempty;query:sort"`
+	TotalRows  int64    `json:"total_rows"`
+	TotalPages int      `json:"total_pages"`
+	Links      []string `json:"links"`
 }
 
 var errorParsing = func(field string) string {
@@ -64,7 +65,7 @@ func (p *Pagination) SetLimitFromString(limit string) error {
 	if err != nil {
 		return err
 	}
-	p.Page = convert
+	p.Limit = convert
 	return nil
 }
 
@@ -95,6 +96,7 @@ func (p *Pagination) FactoryFromPrimitives(page, limit, sort string) *[]string {
 }
 
 func (p *Pagination) CheckValidData() *[]string {
+
 	var errorCollection []string
 	if p.Limit == 0 || p.Limit > 100 {
 		errorCollection = append(errorCollection, fmt.Sprint("The limit must be between 0 and 100."))

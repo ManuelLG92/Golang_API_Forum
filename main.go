@@ -51,6 +51,7 @@ func middlewareCors(next http.Handler) http.Handler {
 		})
 }
 func main() {
+	helpers.LoadEnvs()
 	router := mux.NewRouter()
 	port := ":2000"
 	config.Connection()
