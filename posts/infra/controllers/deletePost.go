@@ -15,7 +15,7 @@ func DeletePost(w http.ResponseWriter, r *http.Request) {
 		helpers.SendUnprocessableEntity(w, "<id> parameter is required.")
 		return
 	}
-	var userId string = *auth.GetUserIdFromContext(r.Context())
+	var userId = *auth.GetUserIdFromContext(r.Context())
 
 	fmt.Println("Before call post_application.DeletePost")
 	if err := post_application.DeletePost(userId, postId); err != nil {

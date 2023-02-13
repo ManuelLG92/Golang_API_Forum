@@ -30,7 +30,6 @@ func (cache *cache[T]) Set(key string, item T) {
 func (cache *cache[T]) Get(key string) (v *T) {
 	if v, ok := cache.Items[key]; ok {
 		cache.logBuilder("Found", key)
-		//fmt.Printf("Found item in cache by key: %v and type: %v", key, *new(T))
 		return &v
 	}
 	cache.logBuilder("Not found", key)

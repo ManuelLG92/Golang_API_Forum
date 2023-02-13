@@ -3,12 +3,12 @@ package post_application
 import (
 	"fmt"
 
-	post_domain "forum/posts/domain"
-	post_utils "forum/posts/utils"
+	postDomain "forum/posts/domain"
+	postUtils "forum/posts/utils"
 )
 
-func UpdatePost(userId string, postId string, data post_domain.PostUpdatableFields) (*post_domain.Post, error) {
-	postModel, err := post_utils.GetPostByIdAndUserId(postId, userId)
+func UpdatePost(userId string, postId string, data postDomain.PostUpdatableFields) (*postDomain.Post, error) {
+	postModel, err := postUtils.GetPostByIdAndUserId(postId, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -16,7 +16,7 @@ func UpdatePost(userId string, postId string, data post_domain.PostUpdatableFiel
 	if err != nil {
 		return nil, err
 	}
-	if err := post_utils.Save(post); err != nil {
+	if err := postUtils.Save(post); err != nil {
 		fmt.Printf("Error updating the post. %v", err.Error())
 		return nil, err
 	}

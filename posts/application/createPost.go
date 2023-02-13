@@ -1,16 +1,16 @@
 package post_application
 
 import (
-	post_domain "forum/posts/domain"
-	post_utils "forum/posts/utils"
+	postDomain "forum/posts/domain"
+	postUtils "forum/posts/utils"
 )
 
-func CreatePost(userId string, data post_domain.PostUpdatableFields) (*post_domain.Post, error) {
-	post, errorValidPost := post_domain.NewPost(userId, data.Title, data.Content)
+func CreatePost(userId string, data postDomain.PostUpdatableFields) (*postDomain.Post, error) {
+	post, errorValidPost := postDomain.NewPost(userId, data.Title, data.Content)
 	if errorValidPost != nil {
 		return nil, errorValidPost
 	}
-	if err := post_utils.Save(post); err != nil {
+	if err := postUtils.Save(post); err != nil {
 		return nil, err
 	}
 	return post, nil
