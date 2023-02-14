@@ -7,8 +7,8 @@ import (
 	"forum/auth"
 	"forum/handlers"
 	"forum/helpers"
-	post_application "forum/posts/application"
-	post_domain "forum/posts/domain"
+	postApplication "forum/posts/application"
+	postDomain "forum/posts/domain"
 )
 
 func UpdatePost(w http.ResponseWriter, r *http.Request) {
@@ -18,13 +18,13 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var userId string = *auth.GetUserIdFromContext(r.Context())
-	post, err := helpers.DecodeBody[post_domain.PostUpdatableFields](r.Body, "Error trying to update the post")
+	post, err := helpers.DecodeBody[postDomain.PostUpdatableFields](r.Body, "Error trying to update the post")
 	if err != nil {
 		helpers.SendUnprocessableEntity(w, err.Error())
 		return
 	}
 
-	response, err := post_application.UpdatePost(userId, postId, *post)
+	response, err := postApplication.UpdatePost(userId, postId, *post)
 	if err != nil {
 		fmt.Printf("Error trying to Update post: %v. Error: %v", postId, err.Error())
 		fmt.Println("Error trying to Update post: ", postId)

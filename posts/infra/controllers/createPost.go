@@ -6,19 +6,19 @@ import (
 
 	"forum/auth"
 	"forum/helpers"
-	post_application "forum/posts/application"
-	post_domain "forum/posts/domain"
+	postApplication "forum/posts/application"
+	postDomain "forum/posts/domain"
 )
 
 func CreatePost(w http.ResponseWriter, r *http.Request) {
 	userId := auth.GetUserIdFromContext(r.Context())
-	post, err := helpers.DecodeBody[post_domain.PostUpdatableFields](r.Body, "Error")
+	post, err := helpers.DecodeBody[postDomain.PostUpdatableFields](r.Body, "Error")
 	if err != nil {
 		helpers.SendUnprocessableEntity(w, fmt.Sprintf("Error trying fit the body to struct. %v", err.Error()))
 		return
 	}
 
-	createdPost, err := post_application.CreatePost(*userId, *post)
+	createdPost, err := postApplication.CreatePost(*userId, *post)
 	if err != nil {
 		fmt.Println("Error trying to create a user: ", err)
 		helpers.SendNoContent(w)

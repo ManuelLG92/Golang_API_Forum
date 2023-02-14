@@ -5,7 +5,7 @@ import (
 	"forum/auth"
 	"forum/config"
 	"forum/helpers"
-	post_application "forum/posts/application"
+	postApplication "forum/posts/application"
 	"net/http"
 )
 
@@ -19,7 +19,7 @@ func GetPostsByUser(w http.ResponseWriter, r *http.Request) {
 		helpers.SendUnprocessableEntity(w, "no pagination found")
 	}
 
-	posts, err := post_application.GetPostsByUser(*userId, paginate)
+	posts, err := postApplication.GetPostsByUser(*userId, paginate)
 	if err != nil {
 		fmt.Println("Error trying to get the posts: ", err)
 		helpers.SendInternalServerError(w)

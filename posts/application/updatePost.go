@@ -2,7 +2,6 @@ package post_application
 
 import (
 	"fmt"
-
 	postDomain "forum/posts/domain"
 	postUtils "forum/posts/utils"
 )

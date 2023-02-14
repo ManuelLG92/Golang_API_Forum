@@ -7,7 +7,7 @@ import (
 	"forum/config"
 	"forum/helpers"
 	postApplication "forum/posts/application"
-	post_utils "forum/posts/utils"
+	postUtils "forum/posts/utils"
 	"net/http"
 )
 
@@ -23,7 +23,7 @@ func GetPosts(w http.ResponseWriter, r *http.Request) {
 
 	posts, err := postApplication.GetPosts(paginate)
 	if err != nil {
-		var badReqError post_utils.BadRequestError
+		var badReqError postUtils.BadRequestError
 		if errors.As(err, &badReqError.Err) {
 			fmt.Println(err.Error())
 			helpers.SendBadRequestEntity(w, err.Error())
