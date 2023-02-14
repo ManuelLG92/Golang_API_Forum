@@ -2,6 +2,9 @@ package config
 
 import (
 	"fmt"
+	"forum/helpers"
+	"gorm.io/gorm"
+	"math"
 	"net/url"
 	"strconv"
 )
@@ -114,4 +117,39 @@ func (p *Pagination) CheckValidData() *[]string {
 		return nil
 	}
 	return &errorCollection
+}
+
+func Paginate[T any](pagination *Pagination, db *gorm.DB) func(db *gorm.DB) *gorm.DB {
+
+	t := new(T)
+	host := helpers.Get("HOST")
+	var totalRows int64
+	if e := db.Model(t).Count(&totalRows); e.Error != nil {
+		fmt.Println("error", e.Error)
+
+	}
+	fmt.Println("totalRows", totalRows)
+
+	pagination.TotalRows = totalRows
+	totalPages := int(math.Ceil(float64(totalRows) / float64(pagination.Limit)))
+	pagination.TotalPages = totalPages
+	for i := 0; i < totalPages; i++ {
+		builder := fmt.Sprintf("%s/posts/latest?page=%v&limit=%v", host, i+1, pagination.Limit)
+		pagination.Links = append(pagination.Links, builder)
+	}
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Offset(pagination.GetOffset()).Limit(pagination.GetLimit()).Order(pagination.GetSort())
+	}
+}
+
+func PaginationFactory(page, limit int, sort string) *Pagination {
+	return &Pagination{Limit: limit, Page: page, TotalRows: 0, TotalPages: 0, Sort: sort}
+
+	//Limit      int      `json:"limit,omitempty;query:limit"`
+	//Page       int      `json:"page,omitempty;query:page"`
+	//Sort       string   `json:"sort,omitempty;query:sort"`
+	//TotalRows  int64    `json:"total_rows"`
+	//TotalPages int      `json:"total_pages"`
+	//Links      []string `json:"links"`
+
 }
